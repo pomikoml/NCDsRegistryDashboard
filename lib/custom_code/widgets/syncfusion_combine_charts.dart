@@ -555,8 +555,8 @@ class _SyncfusionCombineChartsState extends State<SyncfusionCombineCharts> {
                   name: 'จำนวนผู้ป่วย',
                   dataSource: _chartData,
                   spacing: isSingleBar ? 0 : (widget.selected! > 0 ? 0.5 : 0.3),
-                  // หากมีเพียงค่าปีเดียว ปรับความกว้างแท่งกราฟให้มองเห็นชัดเจน
-                  width: isSingleBar ? 0.8 : 0.6,
+                  // ใช้ความกว้างคงที่เพื่อให้เลื่อนดูได้ต่อเนื่อง
+                  width: 0.1,
                   xValueMapper: (ChartSampleData data, _) => data.x,
                   yValueMapper: (ChartSampleData data, _) => data.y,
                   dataLabelSettings: DataLabelSettings(
