@@ -519,9 +519,9 @@ class _SyncfusionCombineChartsState extends State<SyncfusionCombineCharts> {
               tooltipBehavior: _tooltipBehavior,
               plotAreaBorderWidth: 0,
               primaryXAxis: CategoryAxis(
-                initialZoomPosition: widget.selected! > 0 ? 0.1 : 0.8,
-
-                initialZoomFactor: widget.selected! > 0 ? 1 : 0.3,
+                // เมื่อกรองดูเฉพาะปีเดียว ให้แสดงกราฟแบบเต็มโดยไม่ซูม
+                initialZoomPosition: widget.selected != null && widget.selected! > 0 ? 0 : 0.8,
+                initialZoomFactor: widget.selected != null && widget.selected! > 0 ? 1 : 0.3,
                 majorGridLines: MajorGridLines(width: 0),
                 edgeLabelPlacement: EdgeLabelPlacement.shift,
                 // labelStyle: TextStyle(color: Colors.transparent,),
@@ -559,7 +559,8 @@ class _SyncfusionCombineChartsState extends State<SyncfusionCombineCharts> {
                   name: 'จำนวนผู้ป่วย',
                   dataSource: _chartData,
                   spacing: widget.selected! > 0 ? 0.5 : 0.3,
-                  width: _chartData.length == 1 ? 0.2 : 0.8,
+                  // หากมีเพียงค่าปีเดียว ปรับความกว้างแท่งกราฟให้มองเห็นชัดเจน
+                  width: _chartData.length == 1 ? 0.6 : 0.8,
                   xValueMapper: (ChartSampleData data, _) => data.x,
                   yValueMapper: (ChartSampleData data, _) => data.y,
                   dataLabelSettings: DataLabelSettings(
