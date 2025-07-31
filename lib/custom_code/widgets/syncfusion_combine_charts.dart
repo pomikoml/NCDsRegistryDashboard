@@ -407,18 +407,12 @@ class _SyncfusionCombineChartsState extends State<SyncfusionCombineCharts> {
         //debugPrint('✅ year Data: $data');
         // ใช้ setState() หรือเก็บ data ตามที่ต้องการ
         setState(() {
-          // // totalYear = int.parse(data['data']['total_years']);
-          // totalYear = data['data']['total_years'] as int;
-          // final dynamic rawTotal = data['data']['total_years'];
-          // totalYear = rawTotal is int ? rawTotal : int.tryParse(rawTotal.toString()) ?? 0;
-          // totalYear = data['total_years'] as int;
           yearDataList = List<Map<String, dynamic>>.from(data['data']);
-          // for (var item in data['data']) {
-          //   final int year = item['fiscal_year'];
-          //   final int count = item['count'] ?? 0;
-          //   // final int rate_per_100000 = item['rate_per_100000'] ?? 0;
-          //   final double percent = (item['rate_per_100000'] ?? 0).toDouble();
-          // }
+        });
+
+        // Reset zoom to ensure proper display when data length changes
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _zoomPan.reset();
         });
 
         //debugPrint('✅ Year Data Loaded, total: ${(totalYear)}');
@@ -473,6 +467,8 @@ class _SyncfusionCombineChartsState extends State<SyncfusionCombineCharts> {
       );
     }).toList();
 
+    final bool isSingleBar = _chartData.length == 1;
+
     return Container(
       width: widget.width,
       height: widget.height ?? 300, // Provide a default height if none is provided
@@ -519,9 +515,9 @@ class _SyncfusionCombineChartsState extends State<SyncfusionCombineCharts> {
               tooltipBehavior: _tooltipBehavior,
               plotAreaBorderWidth: 0,
               primaryXAxis: CategoryAxis(
-                // เมื่อกรองดูเฉพาะปีเดียว ให้แสดงกราฟแบบเต็มโดยไม่ซูม
-                initialZoomPosition: widget.selected != null && widget.selected! > 0 ? 0 : 0.8,
-                initialZoomFactor: widget.selected != null && widget.selected! > 0 ? 1 : 0.3,
+                // เมื่อกรองดูเฉพาะปีเดียว หรือเหลือข้อมูลเพียงรายการเดียว ให้แสดงเต็มโดยไม่ซูม
+                initialZoomPosition: (widget.selected != null && widget.selected! > 0) || isSingleBar ? 0 : 0.8,
+                initialZoomFactor: (widget.selected != null && widget.selected! > 0) || isSingleBar ? 1 : 0.3,
                 majorGridLines: MajorGridLines(width: 0),
                 edgeLabelPlacement: EdgeLabelPlacement.shift,
                 // labelStyle: TextStyle(color: Colors.transparent,),
@@ -558,9 +554,9 @@ class _SyncfusionCombineChartsState extends State<SyncfusionCombineCharts> {
                 ColumnSeries<ChartSampleData, String>(
                   name: 'จำนวนผู้ป่วย',
                   dataSource: _chartData,
-                  spacing: widget.selected! > 0 ? 0.5 : 0.3,
-                  // หากมีเพียงค่าปีเดียว ปรับความกว้างแท่งกราฟให้มองเห็นชัดเจน
-                  width: _chartData.length == 1 ? 0.6 : 0.8,
+                  spacing: isSingleBar ? 0 : (widget.selected! > 0 ? 0.5 : 0.3),
+                  // ใช้ความกว้างคงที่เพื่อให้เลื่อนดูได้ต่อเนื่อง
+                  width: 0.1,
                   xValueMapper: (ChartSampleData data, _) => data.x,
                   yValueMapper: (ChartSampleData data, _) => data.y,
                   dataLabelSettings: DataLabelSettings(
