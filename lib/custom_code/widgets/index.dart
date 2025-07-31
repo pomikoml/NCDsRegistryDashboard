@@ -16,3 +16,7 @@ export 'blood_summary_province.dart' show BloodSummaryProvince;
 export 'blood_summary_hospital.dart' show BloodSummaryHospital;
 export 'donut_by_genders.dart' show DonutByGenders;
 export 'high_blood_pressure_by_ages.dart' show HighBloodPressureByAges;
+export 'syncfusion_donut_submission_status.dart'
+    show SyncfusionDonutSubmissionStatus;
+export 'syncfusion_pie_submission_overview.dart'
+    show SyncfusionPieSubmissionOverview;

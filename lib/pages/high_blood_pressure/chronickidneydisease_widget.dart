@@ -1,5 +1,6 @@
 // ignore_for_file: prefer_const_literals_to_create_immutables, prefer_const_constructors
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:n_c_ds_registry_dashboard/NCDs_getX.dart';
@@ -101,9 +102,20 @@ class _ChronicKidneyDiseaseWidgetState extends State<ChronicKidneyDiseaseWidget>
 
   String? check_access_level = '';
 
+  // เพิ่มตัวแปรสำหรับสถานะการกด
+  bool isProcessing = false;
+
   var orgProvinceCodesList;
   var queryhcodeList = '';
   // late List<String> provinceOptions;
+
+  // เพิ่มตัวแปรใหม่เพื่อเก็บรายการโรงพยาบาลทั้งหมด
+  List<String> allHospitalList = []; // เก็บโรงพยาบาลทั้งหมด
+  List<String> filteredHospitalList = []; // เก็บโรงพยาบาลที่กรองแล้ว
+
+  // เพิ่มฟังก์ชันสำหรับแสดง loading state
+  bool isLoadingHospitals = false;
+
   @override
   void initState() {
     super.initState();
@@ -133,6 +145,7 @@ class _ChronicKidneyDiseaseWidgetState extends State<ChronicKidneyDiseaseWidget>
       ),
     });
     callAuthAPI();
+
     WidgetsBinding.instance.addPostFrameCallback((_) => safeSetState(() {}));
   }
 
@@ -167,10 +180,75 @@ class _ChronicKidneyDiseaseWidgetState extends State<ChronicKidneyDiseaseWidget>
   //   return filtered;
   // }
 
+  // แก้ไขฟังก์ชัน loadAllHospitals() ให้โหลดข้อมูลทั้งหมด
+  Future<void> loadAllHospitals() async {
+    final url = Uri.parse('$baseurl/api/hospital');
+    final headers = {
+      'Authorization': 'Bearer $apiToken',
+      'Content-Type': 'application/json',
+    };
+
+    List<Map<String, dynamic>> allHospitals = [];
+    int currentPage = 1;
+    int pageSize = 1000; // เพิ่มขนาดหน้าเพื่อลดจำนวนการเรียก API
+    bool hasMoreData = true;
+
+    try {
+      while (hasMoreData) {
+        final body = jsonEncode({
+          'page': currentPage,
+          'page_size': pageSize,
+          // ไม่ใส่ province_code เพื่อให้ได้ทั้งหมด
+        });
+
+        final response = await http.post(url, headers: headers, body: body);
+
+        if (response.statusCode == 200) {
+          final decoded = jsonDecode(utf8.decode(response.bodyBytes));
+          final List<dynamic> data = decoded['data'] ?? [];
+          final int totalCount = decoded['total_count'] ?? 0;
+
+          print('[DEBUG] Page $currentPage: ${data.length} hospitals loaded');
+
+          if (data.isNotEmpty) {
+            allHospitals.addAll(data.cast<Map<String, dynamic>>());
+
+            // ตรวจสอบว่ามีข้อมูลเพิ่มเติมหรือไม่
+            if (allHospitals.length >= totalCount || data.length < pageSize) {
+              hasMoreData = false;
+            } else {
+              currentPage++;
+            }
+          } else {
+            hasMoreData = false;
+          }
+        } else {
+          print('[ERROR] loadAllHospitals page $currentPage: ${response.statusCode}');
+          hasMoreData = false;
+        }
+      }
+
+      print('[DEBUG] Total hospitals loaded: ${allHospitals.length}');
+
+      setState(() {
+        allHospitalList = [
+          'ทั้งหมด',
+          ...allHospitals.map<String>((e) => '${e["hospital_name"]} (${e["hospital_code"]})').toList()
+        ];
+
+        // ตั้งค่าเริ่มต้น
+        filteredHospitalList = List.from(allHospitalList);
+      });
+    } catch (e) {
+      print('[ERROR] loadAllHospitals: $e');
+    }
+  }
+
   Future<void> loadProvinces({String? selectedRegion}) async {
     final prefs = await SharedPreferences.getInstance();
-    final accessLevel = '5';
-    // prefs.getString('check_access_level') ?? '1';
+    final accessLevel =
+        //  '5';
+        prefs.getString('check_access_level') ?? '1';
 
     List<String> filtered = [];
 
@@ -408,6 +486,39 @@ class _ChronicKidneyDiseaseWidgetState extends State<ChronicKidneyDiseaseWidget>
     'นราธิวาส': '96',
   };
 
+  // Future<void> loadHospitalByProvinceCode(String provinceCode) async {
+  //   final url = Uri.parse('$baseurl/api/hospital');
+  //   final headers = {
+  //     'Authorization': 'Bearer $apiToken',
+  //     'Content-Type': 'application/json',
+  //   };
+
+  //   final body = jsonEncode({
+  //     'page_size': 10000,
+  //     'province_code': provinceCode,
+  //   });
+
+  //   try {
+  //     final response = await http.post(url, headers: headers, body: body);
+  //     if (response.statusCode == 200) {
+  //       final decoded = jsonDecode(utf8.decode(response.bodyBytes));
+  //       final List<dynamic> data = decoded['data'] ?? [];
+
+  //       setState(() {
+  //         hcodeList = [
+  //           'ทั้งหมด',
+  //           ...data.map<String>((e) => '${e["hospital_name"]} (${e["hospital_code"]})').toList()
+  //         ];
+  //       });
+  //     } else {
+  //       print('[ERROR] ${response.statusCode}');
+  //     }
+  //   } catch (e) {
+  //     print('[ERROR] loadHospitalByProvinceCode: $e');
+  //   }
+  // }
+
+  // แก้ไขฟังก์ชัน loadHospitalByProvinceCode ให้โหลดข้อมูลทั้งหมดด้วย
   Future<void> loadHospitalByProvinceCode(String provinceCode) async {
     final url = Uri.parse('$baseurl/api/hospital');
     final headers = {
@@ -415,26 +526,61 @@ class _ChronicKidneyDiseaseWidgetState extends State<ChronicKidneyDiseaseWidget>
       'Content-Type': 'application/json',
     };
 
-    final body = jsonEncode({
-      'page_size': 10000,
-      'province_code': provinceCode,
-    });
+    List<Map<String, dynamic>> provinceHospitals = [];
+    int currentPage = 1;
+    int pageSize = 1000;
+    bool hasMoreData = true;
 
     try {
-      final response = await http.post(url, headers: headers, body: body);
-      if (response.statusCode == 200) {
-        final decoded = jsonDecode(utf8.decode(response.bodyBytes));
-        final List<dynamic> data = decoded['data'] ?? [];
+      while (hasMoreData) {
+        final body = jsonEncode({
+          'page': currentPage,
+          'page_size': pageSize,
+          'province_code': provinceCode,
+        });
 
-        setState(() {
+        final response = await http.post(url, headers: headers, body: body);
+
+        if (response.statusCode == 200) {
+          final decoded = jsonDecode(utf8.decode(response.bodyBytes));
+          final List<dynamic> data = decoded['data'] ?? [];
+          final int totalCount = decoded['total_count'] ?? 0;
+
+          print('[DEBUG] Province $provinceCode Page $currentPage: ${data.length} hospitals loaded');
+
+          if (data.isNotEmpty) {
+            provinceHospitals.addAll(data.cast<Map<String, dynamic>>());
+
+            // ตรวจสอบว่ามีข้อมูลเพิ่มเติมหรือไม่
+            if (provinceHospitals.length >= totalCount || data.length < pageSize) {
+              hasMoreData = false;
+            } else {
+              currentPage++;
+            }
+          } else {
+            hasMoreData = false;
+          }
+        } else {
+          print('[ERROR] loadHospitalByProvinceCode page $currentPage: ${response.statusCode}');
+          hasMoreData = false;
+        }
+      }
+
+      print('[DEBUG] Total hospitals for province $provinceCode: ${provinceHospitals.length}');
+
+      setState(() {
+        if (check_access_level == '5') {
+          filteredHospitalList = [
+            'ทั้งหมด',
+            ...provinceHospitals.map<String>((e) => '${e["hospital_name"]} (${e["hospital_code"]})').toList()
+          ];
+        } else {
           hcodeList = [
             'ทั้งหมด',
-            ...data.map<String>((e) => '${e["hospital_name"]} (${e["hospital_code"]})').toList()
+            ...provinceHospitals.map<String>((e) => '${e["hospital_name"]} (${e["hospital_code"]})').toList()
           ];
-        });
-      } else {
-        print('[ERROR] ${response.statusCode}');
-      }
+        }
+      });
     } catch (e) {
       print('[ERROR] loadHospitalByProvinceCode: $e');
     }
@@ -480,6 +626,10 @@ class _ChronicKidneyDiseaseWidgetState extends State<ChronicKidneyDiseaseWidget>
     await fetchHighBloodPressureByAge(district: '', hospital: queryhcodeList, province: orgProvinceCodesList, regionName: '', year: '');
     await fetchHighBloodPressureByGender(district: '', hospital: queryhcodeList, province: orgProvinceCodesList, regionName: '', year: '');
     // hcodeList = await loadHcodeListByAccessLevel();
+    // เพิ่มบรรทัดนี้
+    if (check_access_level == '5') {
+      loadAllHospitals(); // โหลดโรงพยาบาลทั้งหมดสำหรับ level 5
+    }
   }
 
   String _getRegionId(String? name) {
@@ -645,6 +795,19 @@ class _ChronicKidneyDiseaseWidgetState extends State<ChronicKidneyDiseaseWidget>
               : [
                   regionId
                 ],
+          'organization_code': hospitalList.isEmpty ? null : hospitalList,
+          'org_province_code': provinceList
+        });
+      } else {
+        body = jsonEncode({
+          'cd_code': fcdcode,
+          'level': check_access_level,
+          'fiscal_year': fiscalYear == 0 ? null : fiscalYear,
+          // 'region_id': regionId == ''
+          //     ? null
+          //     : [
+          //         regionId
+          //       ],
           'organization_code': hospitalList.isEmpty ? null : hospitalList,
           'org_province_code': provinceList
         });
@@ -984,18 +1147,33 @@ class _ChronicKidneyDiseaseWidgetState extends State<ChronicKidneyDiseaseWidget>
     final fcdcode = '009';
     if (check_access_level == '5') {
       if (checkregionfilter == 4) {
-        body = jsonEncode({
-          'cd_code': fcdcode,
-          'level': check_access_level,
-          'fiscal_year': fiscalYear == 0 ? null : fiscalYear,
-          'region_id': regionId == ''
-              ? null
-              : [
-                  regionId
-                ],
-          'organization_code': null,
-          'org_province_code': []
-        });
+        if (checkfilter == 0) {
+          body = jsonEncode({
+            'cd_code': fcdcode,
+            'level': check_access_level,
+            'fiscal_year': fiscalYear == 0 ? null : fiscalYear,
+            'region_id': regionId == ''
+                ? null
+                : [
+                    regionId
+                  ],
+            'organization_code': null,
+            'org_province_code': []
+          });
+        } else if (checkfilter == 1) {
+          body = jsonEncode({
+            'cd_code': fcdcode,
+            'level': check_access_level,
+            'fiscal_year': fiscalYear == 0 ? null : fiscalYear,
+            'region_id': regionId == ''
+                ? null
+                : [
+                    regionId
+                  ],
+            'organization_code': null,
+            'org_province_code': provinceList
+          });
+        }
       } else {
         body = jsonEncode({
           'cd_code': fcdcode,
@@ -1012,11 +1190,65 @@ class _ChronicKidneyDiseaseWidgetState extends State<ChronicKidneyDiseaseWidget>
           'org_province_code': provinceList
         });
       }
+    }
+    if (check_access_level == '3') {
+      if (checkfilter == 0) {
+        body = jsonEncode({
+          'cd_code': fcdcode,
+          'level': check_access_level,
+          'fiscal_year': fiscalYear == 0 ? null : fiscalYear,
+          'region_id': regionId == ''
+              ? null
+              : [
+                  regionId
+                ],
+          'organization_code': null,
+          'org_province_code': provinceList
+        });
+      } else if (checkfilter == 1) {
+        body = jsonEncode({
+          'cd_code': fcdcode,
+          'level': check_access_level,
+          'fiscal_year': fiscalYear == 0 ? null : fiscalYear,
+          'region_id': regionId == ''
+              ? null
+              : [
+                  regionId
+                ],
+          'organization_code': null,
+          'org_province_code': provinceList
+        });
+      } else if (checkfilter == 2) {
+        body = jsonEncode({
+          'cd_code': fcdcode,
+          'level': check_access_level,
+          'fiscal_year': fiscalYear == 0 ? null : fiscalYear,
+          'region_id': regionId == ''
+              ? null
+              : [
+                  regionId
+                ],
+          'organization_code': hospitalList.isEmpty ? null : hospitalList,
+          'org_province_code': provinceList
+        });
+      } else {
+        body = jsonEncode({
+          'cd_code': fcdcode,
+          'level': check_access_level,
+          'fiscal_year': fiscalYear == 0 ? null : fiscalYear,
+          // 'region_id': regionId == ''
+          //     ? null
+          //     : [
+          //         regionId
+          //       ],
+          'organization_code': hospitalList.isEmpty ? null : hospitalList,
+          'org_province_code': provinceList
+        });
+      }
     } else {
       body = jsonEncode({
         'cd_code': fcdcode,
         'level': check_access_level,
-        // check_access_level,
         'fiscal_year': fiscalYear == 0 ? null : fiscalYear,
         'region_id': regionId == ''
             ? null
@@ -1026,13 +1258,63 @@ class _ChronicKidneyDiseaseWidgetState extends State<ChronicKidneyDiseaseWidget>
         'organization_code':
             // [],
             hospitalList.isEmpty ? null : hospitalList,
-        // fhospital == ''
-        //     ? null
-        //     : [
-        //         fhospital
-        //       ],
+        // (check_access_level == '1' || check_access_level == '2') ? (fhospital.isEmpty ? null : fhospital) : (hospitalList.isEmpty ? null : hospitalList),
         'org_province_code': provinceList
       });
+      //--------4321
+      // if (checkfilter == 0) {
+      //   body = jsonEncode({
+      //     'cd_code': fcdcode,
+      //     'level': check_access_level,
+      //     'fiscal_year': fiscalYear == 0 ? null : fiscalYear,
+      //     'region_id': regionId == ''
+      //         ? null
+      //         : [
+      //             regionId
+      //           ],
+      //     'organization_code': null,
+      //     'org_province_code': provinceList
+      //   });
+      // } else if (checkfilter == 1) {
+      //   body = jsonEncode({
+      //     'cd_code': fcdcode,
+      //     'level': check_access_level,
+      //     'fiscal_year': fiscalYear == 0 ? null : fiscalYear,
+      //     'region_id': regionId == ''
+      //         ? null
+      //         : [
+      //             regionId
+      //           ],
+      //     'organization_code': null,
+      //     'org_province_code': provinceList
+      //   });
+      // } else if (checkfilter == 2) {
+      //   body = jsonEncode({
+      //     'cd_code': fcdcode,
+      //     'level': check_access_level,
+      //     'fiscal_year': fiscalYear == 0 ? null : fiscalYear,
+      //     'region_id': regionId == ''
+      //         ? null
+      //         : [
+      //             regionId
+      //           ],
+      //     'organization_code': hospitalList.isEmpty ? null : hospitalList,
+      //     'org_province_code': provinceList
+      //   });
+      // } else {
+      //   body = jsonEncode({
+      //     'cd_code': fcdcode,
+      //     'level': check_access_level,
+      //     'fiscal_year': fiscalYear == 0 ? null : fiscalYear,
+      //     'region_id': regionId == ''
+      //         ? null
+      //         : [
+      //             regionId
+      //           ],
+      //     'organization_code': hospitalList.isEmpty ? null : hospitalList,
+      //     'org_province_code': null
+      //   });
+      // }
     }
 
     final response = await http.post(url, headers: headers, body: body);
@@ -1141,33 +1423,33 @@ class _ChronicKidneyDiseaseWidgetState extends State<ChronicKidneyDiseaseWidget>
     final fcdcode = '009';
     if (check_access_level == '5') {
       if (checkregionfilter == 4) {
-        // if (checkfilter == 0) {
-        body = jsonEncode({
-          'cd_code': fcdcode,
-          'level': check_access_level,
-          'fiscal_year': fiscalYear == 0 ? null : fiscalYear,
-          'region_id': regionId == ''
-              ? null
-              : [
-                  regionId
-                ],
-          'organization_code': null,
-          'org_province_code': []
-        });
-        // } else if (checkfilter == 1) {
-        //   body = jsonEncode({
-        //     'cd_code': fcdcode,
-        //     'level': check_access_level,
-        //     'fiscal_year': fiscalYear == 0 ? null : fiscalYear,
-        //     'region_id': regionId == ''
-        //         ? null
-        //         : [
-        //             regionId
-        //           ],
-        //     'organization_code': null,
-        //     'org_province_code': provinceList
-        //   });
-        // }
+        if (checkfilter == 0) {
+          body = jsonEncode({
+            'cd_code': fcdcode,
+            'level': check_access_level,
+            'fiscal_year': fiscalYear == 0 ? null : fiscalYear,
+            'region_id': regionId == ''
+                ? null
+                : [
+                    regionId
+                  ],
+            'organization_code': null,
+            'org_province_code': []
+          });
+        } else if (checkfilter == 1) {
+          body = jsonEncode({
+            'cd_code': fcdcode,
+            'level': check_access_level,
+            'fiscal_year': fiscalYear == 0 ? null : fiscalYear,
+            'region_id': regionId == ''
+                ? null
+                : [
+                    regionId
+                  ],
+            'organization_code': null,
+            'org_province_code': provinceList
+          });
+        }
       } else {
         body = jsonEncode({
           'cd_code': fcdcode,
@@ -1179,8 +1461,63 @@ class _ChronicKidneyDiseaseWidgetState extends State<ChronicKidneyDiseaseWidget>
                   regionId
                 ],
           'organization_code':
-              //  [],
+              // [],
               hospitalList.isEmpty ? null : hospitalList,
+          'org_province_code': provinceList
+        });
+      }
+    }
+    if (check_access_level == '3') {
+      if (checkfilter == 0) {
+        body = jsonEncode({
+          'cd_code': fcdcode,
+          'level': check_access_level,
+          'fiscal_year': fiscalYear == 0 ? null : fiscalYear,
+          'region_id': regionId == ''
+              ? null
+              : [
+                  regionId
+                ],
+          'organization_code': null,
+          'org_province_code': provinceList
+        });
+      } else if (checkfilter == 1) {
+        body = jsonEncode({
+          'cd_code': fcdcode,
+          'level': check_access_level,
+          'fiscal_year': fiscalYear == 0 ? null : fiscalYear,
+          'region_id': regionId == ''
+              ? null
+              : [
+                  regionId
+                ],
+          'organization_code': null,
+          'org_province_code': provinceList
+        });
+      } else if (checkfilter == 2) {
+        body = jsonEncode({
+          'cd_code': fcdcode,
+          'level': check_access_level,
+          'fiscal_year': fiscalYear == 0 ? null : fiscalYear,
+          'region_id': regionId == ''
+              ? null
+              : [
+                  regionId
+                ],
+          'organization_code': hospitalList.isEmpty ? null : hospitalList,
+          'org_province_code': provinceList
+        });
+      } else {
+        body = jsonEncode({
+          'cd_code': fcdcode,
+          'level': check_access_level,
+          'fiscal_year': fiscalYear == 0 ? null : fiscalYear,
+          // 'region_id': regionId == ''
+          //     ? null
+          //     : [
+          //         regionId
+          //       ],
+          'organization_code': hospitalList.isEmpty ? null : hospitalList,
           'org_province_code': provinceList
         });
       }
@@ -1188,7 +1525,6 @@ class _ChronicKidneyDiseaseWidgetState extends State<ChronicKidneyDiseaseWidget>
       body = jsonEncode({
         'cd_code': fcdcode,
         'level': check_access_level,
-        // check_access_level,
         'fiscal_year': fiscalYear == 0 ? null : fiscalYear,
         'region_id': regionId == ''
             ? null
@@ -1198,15 +1534,64 @@ class _ChronicKidneyDiseaseWidgetState extends State<ChronicKidneyDiseaseWidget>
         'organization_code':
             // [],
             hospitalList.isEmpty ? null : hospitalList,
-        // fhospital == ''
-        //     ? null
-        //     : [
-        //         fhospital
-        //       ],
+        // (check_access_level == '1' || check_access_level == '2') ? (fhospital.isEmpty ? null : fhospital) : (hospitalList.isEmpty ? null : hospitalList),
         'org_province_code': provinceList
       });
+      //--------4321
+      // if (checkfilter == 0) {
+      //   body = jsonEncode({
+      //     'cd_code': fcdcode,
+      //     'level': check_access_level,
+      //     'fiscal_year': fiscalYear == 0 ? null : fiscalYear,
+      //     'region_id': regionId == ''
+      //         ? null
+      //         : [
+      //             regionId
+      //           ],
+      //     'organization_code': null,
+      //     'org_province_code': provinceList
+      //   });
+      // } else if (checkfilter == 1) {
+      //   body = jsonEncode({
+      //     'cd_code': fcdcode,
+      //     'level': check_access_level,
+      //     'fiscal_year': fiscalYear == 0 ? null : fiscalYear,
+      //     'region_id': regionId == ''
+      //         ? null
+      //         : [
+      //             regionId
+      //           ],
+      //     'organization_code': null,
+      //     'org_province_code': provinceList
+      //   });
+      // } else if (checkfilter == 2) {
+      //   body = jsonEncode({
+      //     'cd_code': fcdcode,
+      //     'level': check_access_level,
+      //     'fiscal_year': fiscalYear == 0 ? null : fiscalYear,
+      //     'region_id': regionId == ''
+      //         ? null
+      //         : [
+      //             regionId
+      //           ],
+      //     'organization_code': hospitalList.isEmpty ? null : hospitalList,
+      //     'org_province_code': provinceList
+      //   });
+      // } else {
+      //   body = jsonEncode({
+      //     'cd_code': fcdcode,
+      //     'level': check_access_level,
+      //     'fiscal_year': fiscalYear == 0 ? null : fiscalYear,
+      //     'region_id': regionId == ''
+      //         ? null
+      //         : [
+      //             regionId
+      //           ],
+      //     'organization_code': hospitalList.isEmpty ? null : hospitalList,
+      //     'org_province_code': null
+      //   });
+      // }
     }
-
     try {
       final response = await http.post(url, headers: headers, body: body);
 
@@ -1305,14 +1690,10 @@ class _ChronicKidneyDiseaseWidgetState extends State<ChronicKidneyDiseaseWidget>
     hospitalName = await _getHospitalName();
     scopeList = await _getScopeList();
     cid = await _getcid();
-    check_access_level = '5';
-    // await getCheckAccessLevel();
-    // if (check_access_level != '5') {
-    //   checkfilter = 0;
-    // }
+    check_access_level =
+        // '5';
+        await getCheckAccessLevel();
 
-    // await _check_access_level();
-    // final List<String> rowcodes = await _getrowcodeslist();
     final List<String> rawCodes = await _getrowcodeslist();
 
     //     [
@@ -1678,6 +2059,90 @@ class _ChronicKidneyDiseaseWidgetState extends State<ChronicKidneyDiseaseWidget>
                                                           ),
                                                         ),
                                                       ),
+                                                      // FFButtonWidget(
+                                                      //   onPressed: () async {
+                                                      //     setState(() {
+                                                      //       _model.dropDownValue1 = null;
+                                                      //       _model.dropDownValueController1?.reset();
+                                                      //       _model.dropDownValue2 = null;
+                                                      //       _model.dropDownValueController2?.reset();
+                                                      //       _model.dropDownValue3 = null;
+                                                      //       _model.dropDownValueController3?.reset();
+                                                      //       _model.dropDownValue4 = null;
+                                                      //       _model.dropDownValueController4?.reset();
+                                                      //       _model.dropDownValue5 = null;
+                                                      //       _model.dropDownValueController5?.reset();
+                                                      //       checkfilter = 0;
+                                                      //       if (check_access_level == '5') {
+                                                      //         checkregionfilter = 4;
+                                                      //       } else {
+                                                      //         checkregionfilter = 5;
+                                                      //       }
+                                                      //     });
+
+                                                      //     await fetchRegionChartData(
+                                                      //       year: _model.dropDownValue1,
+                                                      //       regionName: _model.dropDownValue2,
+                                                      //       province: orgProvinceCodesList,
+                                                      //       district: _model.dropDownValue4,
+                                                      //       hospital: _model.dropDownValue5,
+                                                      //     );
+                                                      //     await fetchHighBloodPressureByAge(
+                                                      //       year: _model.dropDownValue1,
+                                                      //       regionName: _model.dropDownValue2,
+                                                      //       province: orgProvinceCodesList,
+                                                      //       district: _model.dropDownValue4,
+                                                      //       hospital: _model.dropDownValue5,
+                                                      //     );
+                                                      //     await fetchHighBloodPressureByGender(
+                                                      //       year: _model.dropDownValue1,
+                                                      //       regionName: _model.dropDownValue2,
+                                                      //       province: orgProvinceCodesList,
+                                                      //       district: _model.dropDownValue4,
+                                                      //       hospital: _model.dropDownValue5,
+                                                      //     );
+
+                                                      //     debugPrint('🎯 รีเซ็ตค่า filter ทั้งหมดเรียบร้อยแล้ว');
+                                                      //     print('checkfilter checkregionfilter = $checkfilter $checkregionfilter');
+                                                      //   },
+                                                      //   text: 'รีเซ็ต',
+                                                      //   icon: Icon(
+                                                      //     Icons.restore_rounded,
+                                                      //     size: 16.0,
+                                                      //   ),
+                                                      //   options: FFButtonOptions(
+                                                      //     height: 26.0,
+                                                      //     padding: EdgeInsetsDirectional.fromSTEB(
+                                                      //       8.0,
+                                                      //       0.0,
+                                                      //       8.0,
+                                                      //       0.0,
+                                                      //     ),
+                                                      //     iconPadding: EdgeInsetsDirectional.fromSTEB(
+                                                      //       0.0,
+                                                      //       0.0,
+                                                      //       0.0,
+                                                      //       0.0,
+                                                      //     ),
+                                                      //     color: FlutterFlowTheme.of(
+                                                      //       context,
+                                                      //     ).primary,
+                                                      //     textStyle: FlutterFlowTheme.of(
+                                                      //       context,
+                                                      //     ).labelSmall.override(
+                                                      //           fontFamily: 'IBM Plex Sans Thai Looped',
+                                                      //           color: FlutterFlowTheme.of(
+                                                      //             context,
+                                                      //           ).secondaryBackground,
+                                                      //           letterSpacing: 0.0,
+                                                      //         ),
+                                                      //     elevation: 0.0,
+                                                      //     borderRadius: BorderRadius.circular(
+                                                      //       8.0,
+                                                      //     ),
+                                                      //   ),
+                                                      // ),
+                                                      // แก้ไขฟังก์ชันรีเซ็ตให้รองรับ level 5
                                                       FFButtonWidget(
                                                         onPressed: () async {
                                                           setState(() {
@@ -1692,8 +2157,11 @@ class _ChronicKidneyDiseaseWidgetState extends State<ChronicKidneyDiseaseWidget>
                                                             _model.dropDownValue5 = null;
                                                             _model.dropDownValueController5?.reset();
                                                             checkfilter = 0;
+
                                                             if (check_access_level == '5') {
                                                               checkregionfilter = 4;
+                                                              // รีเซ็ต filteredHospitalList ให้กลับเป็นรายการทั้งหมด
+                                                              filteredHospitalList = List.from(allHospitalList);
                                                             } else {
                                                               checkregionfilter = 5;
                                                             }
@@ -1725,40 +2193,19 @@ class _ChronicKidneyDiseaseWidgetState extends State<ChronicKidneyDiseaseWidget>
                                                           print('checkfilter checkregionfilter = $checkfilter $checkregionfilter');
                                                         },
                                                         text: 'รีเซ็ต',
-                                                        icon: Icon(
-                                                          Icons.restore_rounded,
-                                                          size: 16.0,
-                                                        ),
+                                                        icon: Icon(Icons.restore_rounded, size: 16.0),
                                                         options: FFButtonOptions(
                                                           height: 26.0,
-                                                          padding: EdgeInsetsDirectional.fromSTEB(
-                                                            8.0,
-                                                            0.0,
-                                                            8.0,
-                                                            0.0,
-                                                          ),
-                                                          iconPadding: EdgeInsetsDirectional.fromSTEB(
-                                                            0.0,
-                                                            0.0,
-                                                            0.0,
-                                                            0.0,
-                                                          ),
-                                                          color: FlutterFlowTheme.of(
-                                                            context,
-                                                          ).primary,
-                                                          textStyle: FlutterFlowTheme.of(
-                                                            context,
-                                                          ).labelSmall.override(
+                                                          padding: EdgeInsetsDirectional.fromSTEB(8.0, 0.0, 8.0, 0.0),
+                                                          iconPadding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
+                                                          color: FlutterFlowTheme.of(context).primary,
+                                                          textStyle: FlutterFlowTheme.of(context).labelSmall.override(
                                                                 fontFamily: 'IBM Plex Sans Thai Looped',
-                                                                color: FlutterFlowTheme.of(
-                                                                  context,
-                                                                ).secondaryBackground,
+                                                                color: FlutterFlowTheme.of(context).secondaryBackground,
                                                                 letterSpacing: 0.0,
                                                               ),
                                                           elevation: 0.0,
-                                                          borderRadius: BorderRadius.circular(
-                                                            8.0,
-                                                          ),
+                                                          borderRadius: BorderRadius.circular(8.0),
                                                         ),
                                                       ),
                                                     ],
@@ -2238,21 +2685,45 @@ class _ChronicKidneyDiseaseWidgetState extends State<ChronicKidneyDiseaseWidget>
                                                                   FlutterFlowDropDown<String>(
                                                                 controller: _model.dropDownValueController3 ??= FormFieldController<String>(null),
                                                                 options: provinceOptions,
-                                                                // onChanged: (val) => safeSetState(() => _model.dropDownValue3 = val),
+
+                                                                // onChanged: (val) async {
+                                                                //   _model.dropDownValue5 = null;
+                                                                //   safeSetState(() => _model.dropDownValue3 = val);
+
+                                                                //   final accessLevel = check_access_level;
+                                                                //   // (await SharedPreferences.getInstance())
+                                                                //   // .getString('check_access_level') ?? '1';
+
+                                                                //   if (val != null && val != 'ทั้งหมด') {
+                                                                //     final provinceCode = provinceCodeMap[val] ?? '';
+                                                                //     if (provinceCode.isNotEmpty) {
+                                                                //       // ✅ ตรวจว่า access level 3, 4 หรือ 5
+                                                                //       if (accessLevel == '3' || accessLevel == '4' || accessLevel == '5') {
+                                                                //         await loadHospitalByProvinceCode(provinceCode);
+                                                                //       }
+                                                                //     }
+                                                                //   }
+                                                                // },
+                                                                // แก้ไขการเรียก loadHospitalByProvinceCode ให้มี loading state
                                                                 onChanged: (val) async {
                                                                   _model.dropDownValue5 = null;
                                                                   safeSetState(() => _model.dropDownValue3 = val);
 
                                                                   final accessLevel = check_access_level;
-                                                                  // (await SharedPreferences.getInstance())
-                                                                  // .getString('check_access_level') ?? '1';
 
                                                                   if (val != null && val != 'ทั้งหมด') {
                                                                     final provinceCode = provinceCodeMap[val] ?? '';
                                                                     if (provinceCode.isNotEmpty) {
-                                                                      // ✅ ตรวจว่า access level 3, 4 หรือ 5
                                                                       if (accessLevel == '3' || accessLevel == '4' || accessLevel == '5') {
+                                                                        setState(() {
+                                                                          isLoadingHospitals = true;
+                                                                        });
+
                                                                         await loadHospitalByProvinceCode(provinceCode);
+
+                                                                        setState(() {
+                                                                          isLoadingHospitals = false;
+                                                                        });
                                                                       }
                                                                     }
                                                                   }
@@ -2501,75 +2972,149 @@ class _ChronicKidneyDiseaseWidgetState extends State<ChronicKidneyDiseaseWidget>
                                                               ),
                                                             ),
                                                           ),
+                                                          // Container(
+                                                          //   decoration: BoxDecoration(
+                                                          //     color: FlutterFlowTheme.of(
+                                                          //       context,
+                                                          //     ).secondaryBackground,
+                                                          //     borderRadius: BorderRadius.circular(
+                                                          //       14.0,
+                                                          //     ),
+                                                          //     border: Border.all(
+                                                          //       color: FlutterFlowTheme.of(
+                                                          //         context,
+                                                          //       ).alternate,
+                                                          //     ),
+                                                          //   ),
+                                                          //   child: FlutterFlowDropDown<String>(
+                                                          //     controller: _model.dropDownValueController5 ??= FormFieldController<String>(
+                                                          //       null,
+                                                          //     ),
+                                                          //     options: hcodeList,
+                                                          //     onChanged: (
+                                                          //       val,
+                                                          //     ) =>
+                                                          //         safeSetState(
+                                                          //       () => _model.dropDownValue5 = val,
+                                                          //     ),
+                                                          //     searchHintTextStyle: FlutterFlowTheme.of(
+                                                          //       context,
+                                                          //     ).labelMedium.override(
+                                                          //           fontFamily: 'IBM Plex Sans Thai Looped',
+                                                          //           letterSpacing: 0.0,
+                                                          //         ),
+                                                          //     searchTextStyle: FlutterFlowTheme.of(
+                                                          //       context,
+                                                          //     ).bodyMedium.override(
+                                                          //           fontFamily: 'IBM Plex Sans Thai Looped',
+                                                          //           letterSpacing: 0.0,
+                                                          //         ),
+                                                          //     textStyle: FlutterFlowTheme.of(
+                                                          //       context,
+                                                          //     ).bodyLarge.override(
+                                                          //           fontFamily: 'IBM Plex Sans Thai Looped',
+                                                          //           letterSpacing: 0.0,
+                                                          //         ),
+                                                          //     hintText: '---กรุณาเลือก---',
+                                                          //     searchHintText: 'ค้นหาหน่วย',
+                                                          //     icon: Icon(
+                                                          //       Icons.arrow_drop_down_rounded,
+                                                          //       color: FlutterFlowTheme.of(
+                                                          //         context,
+                                                          //       ).primaryText,
+                                                          //       size: 24.0,
+                                                          //     ),
+                                                          //     elevation: 2.0,
+                                                          //     borderColor: Colors.transparent,
+                                                          //     borderWidth: 0.0,
+                                                          //     borderRadius: 8.0,
+                                                          //     margin: EdgeInsetsDirectional.fromSTEB(
+                                                          //       8.0,
+                                                          //       0.0,
+                                                          //       8.0,
+                                                          //       0.0,
+                                                          //     ),
+                                                          //     hidesUnderline: true,
+                                                          //     isOverButton: false,
+                                                          //     isSearchable: true,
+                                                          //     isMultiSelect: false,
+                                                          //     dropdownHeight: 300,
+                                                          //     maxHeight: 300,
+                                                          //   ),
+                                                          // ),
+                                                          // แก้ไข dropdown ให้แสดง loading state
                                                           Container(
                                                             decoration: BoxDecoration(
-                                                              color: FlutterFlowTheme.of(
-                                                                context,
-                                                              ).secondaryBackground,
-                                                              borderRadius: BorderRadius.circular(
-                                                                14.0,
-                                                              ),
+                                                              color: FlutterFlowTheme.of(context).secondaryBackground,
+                                                              borderRadius: BorderRadius.circular(14.0),
                                                               border: Border.all(
-                                                                color: FlutterFlowTheme.of(
-                                                                  context,
-                                                                ).alternate,
+                                                                color: FlutterFlowTheme.of(context).alternate,
                                                               ),
                                                             ),
-                                                            child: FlutterFlowDropDown<String>(
-                                                              controller: _model.dropDownValueController5 ??= FormFieldController<String>(
-                                                                null,
-                                                              ),
-                                                              options: hcodeList,
-                                                              onChanged: (
-                                                                val,
-                                                              ) =>
-                                                                  safeSetState(
-                                                                () => _model.dropDownValue5 = val,
-                                                              ),
-                                                              searchHintTextStyle: FlutterFlowTheme.of(
-                                                                context,
-                                                              ).labelMedium.override(
-                                                                    fontFamily: 'IBM Plex Sans Thai Looped',
-                                                                    letterSpacing: 0.0,
+                                                            child: isLoadingHospitals
+                                                                ? Container(
+                                                                    height: 50.0,
+                                                                    child: Center(
+                                                                      child: Row(
+                                                                        mainAxisSize: MainAxisSize.min,
+                                                                        children: [
+                                                                          SizedBox(
+                                                                            width: 20.0,
+                                                                            height: 20.0,
+                                                                            child: CircularProgressIndicator(
+                                                                              strokeWidth: 2.0,
+                                                                              valueColor: AlwaysStoppedAnimation<Color>(
+                                                                                FlutterFlowTheme.of(context).primary,
+                                                                              ),
+                                                                            ),
+                                                                          ),
+                                                                          SizedBox(width: 8.0),
+                                                                          Text(
+                                                                            'กำลังโหลดข้อมูล...',
+                                                                            style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                                  fontFamily: 'IBM Plex Sans Thai Looped',
+                                                                                  letterSpacing: 0.0,
+                                                                                ),
+                                                                          ),
+                                                                        ],
+                                                                      ),
+                                                                    ),
+                                                                  )
+                                                                : FlutterFlowDropDown<String>(
+                                                                    controller: _model.dropDownValueController5 ??= FormFieldController<String>(null),
+                                                                    options: (check_access_level == '5') ? filteredHospitalList : hcodeList,
+                                                                    onChanged: (val) => safeSetState(() => _model.dropDownValue5 = val),
+                                                                    searchHintTextStyle: FlutterFlowTheme.of(context).labelMedium.override(
+                                                                          fontFamily: 'IBM Plex Sans Thai Looped',
+                                                                          letterSpacing: 0.0,
+                                                                        ),
+                                                                    searchTextStyle: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                          fontFamily: 'IBM Plex Sans Thai Looped',
+                                                                          letterSpacing: 0.0,
+                                                                        ),
+                                                                    textStyle: FlutterFlowTheme.of(context).bodyLarge.override(
+                                                                          fontFamily: 'IBM Plex Sans Thai Looped',
+                                                                          letterSpacing: 0.0,
+                                                                        ),
+                                                                    hintText: '---กรุณาเลือก---',
+                                                                    searchHintText: 'ค้นหาหน่วย',
+                                                                    icon: Icon(
+                                                                      Icons.arrow_drop_down_rounded,
+                                                                      color: FlutterFlowTheme.of(context).primaryText,
+                                                                      size: 24.0,
+                                                                    ),
+                                                                    elevation: 2.0,
+                                                                    borderColor: Colors.transparent,
+                                                                    borderWidth: 0.0,
+                                                                    borderRadius: 8.0,
+                                                                    margin: EdgeInsetsDirectional.fromSTEB(8.0, 0.0, 8.0, 0.0),
+                                                                    hidesUnderline: true,
+                                                                    isOverButton: false,
+                                                                    isSearchable: true,
+                                                                    isMultiSelect: false,
+                                                                    dropdownHeight: 300,
+                                                                    maxHeight: 300,
                                                                   ),
-                                                              searchTextStyle: FlutterFlowTheme.of(
-                                                                context,
-                                                              ).bodyMedium.override(
-                                                                    fontFamily: 'IBM Plex Sans Thai Looped',
-                                                                    letterSpacing: 0.0,
-                                                                  ),
-                                                              textStyle: FlutterFlowTheme.of(
-                                                                context,
-                                                              ).bodyLarge.override(
-                                                                    fontFamily: 'IBM Plex Sans Thai Looped',
-                                                                    letterSpacing: 0.0,
-                                                                  ),
-                                                              hintText: '---กรุณาเลือก---',
-                                                              searchHintText: 'ค้นหาหน่วย',
-                                                              icon: Icon(
-                                                                Icons.arrow_drop_down_rounded,
-                                                                color: FlutterFlowTheme.of(
-                                                                  context,
-                                                                ).primaryText,
-                                                                size: 24.0,
-                                                              ),
-                                                              elevation: 2.0,
-                                                              borderColor: Colors.transparent,
-                                                              borderWidth: 0.0,
-                                                              borderRadius: 8.0,
-                                                              margin: EdgeInsetsDirectional.fromSTEB(
-                                                                8.0,
-                                                                0.0,
-                                                                8.0,
-                                                                0.0,
-                                                              ),
-                                                              hidesUnderline: true,
-                                                              isOverButton: false,
-                                                              isSearchable: true,
-                                                              isMultiSelect: false,
-                                                              dropdownHeight: 300,
-                                                              maxHeight: 300,
-                                                            ),
                                                           ),
                                                         ].divide(
                                                           SizedBox(
@@ -2589,125 +3134,286 @@ class _ChronicKidneyDiseaseWidgetState extends State<ChronicKidneyDiseaseWidget>
                                                       0.0,
                                                       0.0,
                                                     ),
-                                                    child: GestureDetector(
-                                                      onTapDown: (details) {},
-                                                      onTap: () async {
-                                                        // final selectedProvinceName = _model.dropDownValue3;
-                                                        // final selectedProvinceCode = provinceCodeMap[selectedProvinceName] ?? '';
-                                                        var selectedProvinceCode = provinceCodeMap[_model.dropDownValue3];
-                                                        var selectedHospitalCode = _model.dropDownValue5;
+                                                    child:
+                                                        // GestureDetector(
+                                                        //   onTapDown: (details) {},
+                                                        //   onTap: () async {
+                                                        //     // final selectedProvinceName = _model.dropDownValue3;
+                                                        //     // final selectedProvinceCode = provinceCodeMap[selectedProvinceName] ?? '';
+                                                        //     var selectedProvinceCode = provinceCodeMap[_model.dropDownValue3];
+                                                        //     var selectedHospitalCode = _model.dropDownValue5;
 
-                                                        print('checkfilter $selectedProvinceCode // $selectedHospitalCode');
-                                                        final province = selectedProvinceCode ?? '';
-                                                        final hospital = selectedHospitalCode ?? '';
-                                                        final region = _model.dropDownValue2 ?? '';
+                                                        //     print('checkfilter $selectedProvinceCode // $selectedHospitalCode');
+                                                        //     final province = selectedProvinceCode ?? '';
+                                                        //     final hospital = selectedHospitalCode ?? '';
+                                                        //     final region = _model.dropDownValue2 ?? '';
 
-                                                        regionIdFilter = _getRegionId(region);
-                                                        print('checkfilter region = $region // $regionIdFilter');
-                                                        hospitalselect = selectedHospitalCode ?? '';
+                                                        //     regionIdFilter = _getRegionId(region);
+                                                        //     print('checkfilter region = $region // $regionIdFilter');
+                                                        //     hospitalselect = selectedHospitalCode ?? '';
 
-                                                        if (region.isEmpty) {
-                                                          checkregionfilter = 4;
-                                                        } else {
-                                                          checkregionfilter = 5;
-                                                        }
+                                                        //     if (region.isEmpty) {
+                                                        //       checkregionfilter = 4;
+                                                        //     } else {
+                                                        //       checkregionfilter = 5;
+                                                        //     }
 
-                                                        if (region.isEmpty) {
-                                                          if (province.isNotEmpty && hospital.isEmpty) {
-                                                            checkfilter = 1;
-                                                          } else if (province.isNotEmpty && hospital.isNotEmpty) {
-                                                            checkfilter = 2;
-                                                          } else if (province.isEmpty && hospital.isNotEmpty) {
-                                                            checkfilter = 3;
-                                                          } else {
-                                                            checkfilter = 0;
-                                                          }
-                                                        } else {
-                                                          if (province.isEmpty && hospital.isEmpty) {
-                                                            checkfilter = 6;
-                                                          } else if (province.isNotEmpty && hospital.isEmpty) {
-                                                            checkfilter = 7;
-                                                          } else if (province.isNotEmpty && hospital.isNotEmpty) {
-                                                            checkfilter = 8;
-                                                          } else if (province.isEmpty && hospital.isNotEmpty) {
-                                                            checkfilter = 9;
-                                                          }
-                                                        }
-                                                        if (check_access_level == '4' || check_access_level == '3') {
-                                                          if (checkfilter == 0 || checkfilter == 3) {
-                                                            selectedProvinceCode = orgProvinceCodesList;
-                                                          }
-                                                        }
-                                                        // else if (check_access_level == '2' || check_access_level == '1') {
-                                                        //   if (checkfilter == 3) {
-                                                        //     selectedProvinceCode = null;
-                                                        //     selectedHospitalCode = queryhcodeList;
-                                                        //   }
-                                                        // }
-                                                        print('checkfilter checkregionfilter = $checkfilter $checkregionfilter');
+                                                        //     if (region.isEmpty) {
+                                                        //       if (province.isNotEmpty && hospital.isEmpty) {
+                                                        //         checkfilter = 1;
+                                                        //       } else if (province.isNotEmpty && hospital.isNotEmpty) {
+                                                        //         checkfilter = 2;
+                                                        //       } else if (province.isEmpty && hospital.isNotEmpty) {
+                                                        //         checkfilter = 3;
+                                                        //       } else {
+                                                        //         checkfilter = 0;
+                                                        //       }
+                                                        //     } else {
+                                                        //       if (province.isEmpty && hospital.isEmpty) {
+                                                        //         checkfilter = 6;
+                                                        //       } else if (province.isNotEmpty && hospital.isEmpty) {
+                                                        //         checkfilter = 7;
+                                                        //       } else if (province.isNotEmpty && hospital.isNotEmpty) {
+                                                        //         checkfilter = 8;
+                                                        //       } else if (province.isEmpty && hospital.isNotEmpty) {
+                                                        //         checkfilter = 9;
+                                                        //       }
+                                                        //     }
+                                                        //     if (check_access_level == '4' || check_access_level == '3') {
+                                                        //       if (checkfilter == 0 || checkfilter == 3) {
+                                                        //         selectedProvinceCode = orgProvinceCodesList;
+                                                        //       }
+                                                        //     }
+                                                        //     // else if (check_access_level == '2' || check_access_level == '1') {
+                                                        //     //   if (checkfilter == 3) {
+                                                        //     //     selectedProvinceCode = null;
+                                                        //     //     selectedHospitalCode = queryhcodeList;
+                                                        //     //   }
+                                                        //     // }
+                                                        //     print('checkfilter checkregionfilter = $checkfilter $checkregionfilter');
 
-                                                        await fetchRegionChartData(
-                                                          year: _model.dropDownValue1,
-                                                          regionName: region,
-                                                          province: selectedProvinceCode,
-                                                          district: _model.dropDownValue4,
-                                                          hospital: selectedHospitalCode,
-                                                        );
-                                                        await fetchHighBloodPressureByAge(
-                                                          year: _model.dropDownValue1,
-                                                          regionName: region,
-                                                          province: selectedProvinceCode,
-                                                          district: _model.dropDownValue4,
-                                                          hospital: selectedHospitalCode,
-                                                        );
-                                                        await fetchHighBloodPressureByGender(
-                                                          year: _model.dropDownValue1,
-                                                          regionName: region,
-                                                          province: selectedProvinceCode,
-                                                          district: _model.dropDownValue4,
-                                                          hospital: selectedHospitalCode,
-                                                        );
-                                                        setState(() {});
+                                                        //     await fetchRegionChartData(
+                                                        //       year: _model.dropDownValue1,
+                                                        //       regionName: region,
+                                                        //       province: selectedProvinceCode,
+                                                        //       district: _model.dropDownValue4,
+                                                        //       hospital: selectedHospitalCode,
+                                                        //     );
+                                                        //     await fetchHighBloodPressureByAge(
+                                                        //       year: _model.dropDownValue1,
+                                                        //       regionName: region,
+                                                        //       province: selectedProvinceCode,
+                                                        //       district: _model.dropDownValue4,
+                                                        //       hospital: selectedHospitalCode,
+                                                        //     );
+                                                        //     await fetchHighBloodPressureByGender(
+                                                        //       year: _model.dropDownValue1,
+                                                        //       regionName: region,
+                                                        //       province: selectedProvinceCode,
+                                                        //       district: _model.dropDownValue4,
+                                                        //       hospital: selectedHospitalCode,
+                                                        //     );
+                                                        //     setState(() {});
+                                                        //   },
+                                                        //   child: Container(
+                                                        //     width: 420.0,
+                                                        //     height: 54.0,
+                                                        //     decoration: BoxDecoration(
+                                                        //       color: FlutterFlowTheme.of(
+                                                        //         context,
+                                                        //       ).primary,
+                                                        //       boxShadow: [
+                                                        //         BoxShadow(
+                                                        //           blurRadius: 24.0,
+                                                        //           color: Color(
+                                                        //             0x1F666666,
+                                                        //           ),
+                                                        //           offset: Offset(
+                                                        //             0.0,
+                                                        //             2.0,
+                                                        //           ),
+                                                        //         ),
+                                                        //       ],
+                                                        //       borderRadius: BorderRadius.circular(
+                                                        //         16.0,
+                                                        //       ),
+                                                        //     ),
+                                                        //     child: Align(
+                                                        //       alignment: AlignmentDirectional(
+                                                        //         0.0,
+                                                        //         0.0,
+                                                        //       ),
+                                                        //       child: Text(
+                                                        //         'ประมวลผล',
+                                                        //         style: FlutterFlowTheme.of(
+                                                        //           context,
+                                                        //         ).titleSmall.override(
+                                                        //               fontFamily: 'IBM Plex Sans Thai Looped',
+                                                        //               color: FlutterFlowTheme.of(
+                                                        //                 context,
+                                                        //               ).secondaryBackground,
+                                                        //               letterSpacing: 0.0,
+                                                        //             ),
+                                                        //       ),
+                                                        //     ),
+                                                        //   ),
+                                                        // ),
+                                                        // ใน build method ส่วนของปุ่ม ประมวลผล
+                                                        GestureDetector(
+                                                      onTapDown: (details) {
+                                                        // เปลี่ยนสีเมื่อกดลง
+                                                        setState(() {
+                                                          isProcessing = true;
+                                                        });
                                                       },
-                                                      child: Container(
+                                                      onTapUp: (details) {
+                                                        // คืนสีเมื่อปล่อย (หลังจากหน่วงเวลาสั้นๆ)
+                                                        Timer(Duration(milliseconds: 3000), () {
+                                                          setState(() {
+                                                            isProcessing = false;
+                                                          });
+                                                        });
+                                                      },
+                                                      onTapCancel: () {
+                                                        // คืนสีเมื่อยกเลิกการกด
+                                                        setState(() {
+                                                          isProcessing = false;
+                                                        });
+                                                      },
+                                                      onTap: () async {
+                                                        // เปลี่ยนสีเมื่อเริ่มประมวลผล
+                                                        setState(() {
+                                                          isProcessing = true;
+                                                        });
+
+                                                        try {
+                                                          var selectedProvinceCode = provinceCodeMap[_model.dropDownValue3];
+                                                          var selectedHospitalCode = _model.dropDownValue5;
+
+                                                          print('checkfilter $selectedProvinceCode // $selectedHospitalCode');
+                                                          final province = selectedProvinceCode ?? '';
+                                                          final hospital = selectedHospitalCode ?? '';
+                                                          final region = _model.dropDownValue2 ?? '';
+
+                                                          regionIdFilter = _getRegionId(region);
+                                                          print('checkfilter region = $region // $regionIdFilter');
+                                                          hospitalselect = selectedHospitalCode ?? '';
+
+                                                          if (region.isEmpty) {
+                                                            checkregionfilter = 4;
+                                                          } else {
+                                                            checkregionfilter = 5;
+                                                          }
+
+                                                          if (region.isEmpty) {
+                                                            if (province.isNotEmpty && hospital.isEmpty) {
+                                                              checkfilter = 1;
+                                                            } else if (province.isNotEmpty && hospital.isNotEmpty) {
+                                                              checkfilter = 2;
+                                                            } else if (province.isEmpty && hospital.isNotEmpty) {
+                                                              checkfilter = 3;
+                                                            } else {
+                                                              checkfilter = 0;
+                                                            }
+                                                          } else {
+                                                            if (province.isEmpty && hospital.isEmpty) {
+                                                              checkfilter = 6;
+                                                            } else if (province.isNotEmpty && hospital.isEmpty) {
+                                                              checkfilter = 7;
+                                                            } else if (province.isNotEmpty && hospital.isNotEmpty) {
+                                                              checkfilter = 8;
+                                                            } else if (province.isEmpty && hospital.isNotEmpty) {
+                                                              checkfilter = 9;
+                                                            }
+                                                          }
+
+                                                          if (check_access_level == '4' || check_access_level == '3') {
+                                                            if (checkfilter == 0 || checkfilter == 3) {
+                                                              selectedProvinceCode = orgProvinceCodesList;
+                                                            }
+                                                          }
+
+                                                          print('checkfilter checkregionfilter = $checkfilter $checkregionfilter');
+
+                                                          // ทำการประมวลผล
+                                                          await fetchRegionChartData(
+                                                            year: _model.dropDownValue1,
+                                                            regionName: region,
+                                                            province: selectedProvinceCode,
+                                                            district: _model.dropDownValue4,
+                                                            hospital: selectedHospitalCode,
+                                                          );
+
+                                                          await fetchHighBloodPressureByAge(
+                                                            year: _model.dropDownValue1,
+                                                            regionName: region,
+                                                            province: selectedProvinceCode,
+                                                            district: _model.dropDownValue4,
+                                                            hospital: selectedHospitalCode,
+                                                          );
+
+                                                          await fetchHighBloodPressureByGender(
+                                                            year: _model.dropDownValue1,
+                                                            regionName: region,
+                                                            province: selectedProvinceCode,
+                                                            district: _model.dropDownValue4,
+                                                            hospital: selectedHospitalCode,
+                                                          );
+
+                                                          setState(() {});
+                                                        } catch (error) {
+                                                          print('Error during processing: $error');
+                                                        } finally {
+                                                          // คืนสีเมื่อประมวลผลเสร็จ
+                                                          setState(() {
+                                                            isProcessing = false;
+                                                          });
+                                                        }
+                                                      },
+                                                      child: AnimatedContainer(
+                                                        duration: Duration(milliseconds: 200),
                                                         width: 420.0,
                                                         height: 54.0,
                                                         decoration: BoxDecoration(
-                                                          color: FlutterFlowTheme.of(
-                                                            context,
-                                                          ).primary,
+                                                          color: isProcessing
+                                                              ? FlutterFlowTheme.of(context).secondary // สีเมื่อกำลังประมวลผล
+                                                              : FlutterFlowTheme.of(context).primary, // สีปกติ
                                                           boxShadow: [
                                                             BoxShadow(
-                                                              blurRadius: 24.0,
-                                                              color: Color(
-                                                                0x1F666666,
-                                                              ),
-                                                              offset: Offset(
-                                                                0.0,
-                                                                2.0,
-                                                              ),
+                                                              blurRadius: isProcessing ? 12.0 : 24.0,
+                                                              color: Color(0x1F666666),
+                                                              offset: Offset(0.0, 2.0),
                                                             ),
                                                           ],
-                                                          borderRadius: BorderRadius.circular(
-                                                            16.0,
-                                                          ),
+                                                          borderRadius: BorderRadius.circular(16.0),
                                                         ),
                                                         child: Align(
-                                                          alignment: AlignmentDirectional(
-                                                            0.0,
-                                                            0.0,
-                                                          ),
-                                                          child: Text(
-                                                            'ประมวลผล',
-                                                            style: FlutterFlowTheme.of(
-                                                              context,
-                                                            ).titleSmall.override(
-                                                                  fontFamily: 'IBM Plex Sans Thai Looped',
-                                                                  color: FlutterFlowTheme.of(
-                                                                    context,
-                                                                  ).secondaryBackground,
-                                                                  letterSpacing: 0.0,
+                                                          alignment: AlignmentDirectional(0.0, 0.0),
+                                                          child: Row(
+                                                            mainAxisSize: MainAxisSize.min,
+                                                            mainAxisAlignment: MainAxisAlignment.center,
+                                                            children: [
+                                                              if (isProcessing)
+                                                                Container(
+                                                                  width: 16.0,
+                                                                  height: 16.0,
+                                                                  margin: EdgeInsets.only(right: 8.0),
+                                                                  child: CircularProgressIndicator(
+                                                                    strokeWidth: 2.0,
+                                                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                                                      FlutterFlowTheme.of(context).secondaryBackground,
+                                                                    ),
+                                                                  ),
                                                                 ),
+                                                              Text(
+                                                                isProcessing ? 'กำลังประมวลผล...' : 'ประมวลผล',
+                                                                style: FlutterFlowTheme.of(context).titleSmall.override(
+                                                                      fontFamily: 'IBM Plex Sans Thai Looped',
+                                                                      color: FlutterFlowTheme.of(context).secondaryBackground,
+                                                                      letterSpacing: 0.0,
+                                                                    ),
+                                                              ),
+                                                            ],
                                                           ),
                                                         ),
                                                       ),

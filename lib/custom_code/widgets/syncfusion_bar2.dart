@@ -31,6 +31,7 @@ class SyncfusionBar2 extends StatefulWidget {
 class _SyncfusionBar2State extends State<SyncfusionBar2> {
   late List<_ChartData> data;
   late TooltipBehavior _tooltip;
+  final numberFormat = NumberFormat('#,###');
 
   final getX = Get.find<NCDsgetX>();
 
@@ -71,7 +72,8 @@ class _SyncfusionBar2State extends State<SyncfusionBar2> {
               xValueMapper: (_ChartData d, _) => d.x,
               yValueMapper: (_ChartData d, _) => d.y,
               pointColorMapper: (_ChartData d, _) => d.y == 0 ? const Color.fromARGB(0, 0, 0, 0) : const Color.fromRGBO(8, 142, 255, 1),
-              dataLabelMapper: (_ChartData d, _) => d.y == 0 ? '' : d.y.toString(), // ซ่อน label ถ้า y = 0
+              // dataLabelMapper: (_ChartData d, _) => d.y == 0 ? '' : d.y.toString(), // ซ่อน label ถ้า y = 0
+              dataLabelMapper: (_ChartData d, _) => d.y == 0 ? '' : numberFormat.format(d.y),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(8),
                 topRight: Radius.circular(8),

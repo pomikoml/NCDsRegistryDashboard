@@ -1,3 +1,7 @@
+import 'package:n_c_ds_registry_dashboard/components/health_region_model.dart';
+import 'package:n_c_ds_registry_dashboard/components/pie_by_report/pie_by_report_model.dart';
+import 'package:n_c_ds_registry_dashboard/components/pie_by_submit_status/pie_by_submit_status_model.dart';
+
 import '/components/header/header_widget.dart';
 import '/components/remark_widget/remark_widget_widget.dart';
 import '/flutter_flow/flutter_flow_animations.dart';
@@ -55,6 +59,13 @@ class DashboardOverviewModel extends FlutterFlowModel<DashboardOverviewWidget> {
   // Model for RemarkWidget component.
   late RemarkWidgetModel remarkWidgetModel4;
 
+  late HealthRegionModel healthRegionModel;
+
+  // Model for PieByReport component.
+  late PieByReportModel pieByReportModel;
+  // Model for PieBySubmitStatus component.
+  late PieBySubmitStatusModel pieBySubmitStatusModel;
+
   @override
   void initState(BuildContext context) {
     headerModel = createModel(context, () => HeaderModel());
@@ -62,6 +73,9 @@ class DashboardOverviewModel extends FlutterFlowModel<DashboardOverviewWidget> {
     remarkWidgetModel2 = createModel(context, () => RemarkWidgetModel());
     remarkWidgetModel3 = createModel(context, () => RemarkWidgetModel());
     remarkWidgetModel4 = createModel(context, () => RemarkWidgetModel());
+    healthRegionModel = createModel(context, () => HealthRegionModel());
+    pieByReportModel = createModel(context, () => PieByReportModel());
+    pieBySubmitStatusModel = createModel(context, () => PieBySubmitStatusModel());
   }
 
   @override
@@ -71,5 +85,8 @@ class DashboardOverviewModel extends FlutterFlowModel<DashboardOverviewWidget> {
     remarkWidgetModel2.dispose();
     remarkWidgetModel3.dispose();
     remarkWidgetModel4.dispose();
+    healthRegionModel.dispose();
+    pieByReportModel.dispose();
+    pieBySubmitStatusModel.dispose();
   }
 }

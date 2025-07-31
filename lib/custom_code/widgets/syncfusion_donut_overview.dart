@@ -26,6 +26,7 @@ class SyncfusionDonutOverview extends StatefulWidget {
     this.ObesityPercent,
     this.DiabetesPercent,
     this.HypertensionPercent,
+    this.ECigarettePercent,
   });
 
   final double? width;
@@ -39,6 +40,7 @@ class SyncfusionDonutOverview extends StatefulWidget {
   final double? ObesityPercent; //027
   final double? DiabetesPercent; //001
   final double? HypertensionPercent; //002
+  final double? ECigarettePercent; //026
 
   @override
   State<SyncfusionDonutOverview> createState() => _SyncfusionDonutOverviewState();
@@ -81,6 +83,7 @@ class _SyncfusionDonutOverviewState extends State<SyncfusionDonutOverview> {
     'COPD': Colors.cyan,
     'ไตวาย': Colors.brown,
     'ไขมันในเลือดสูง': Colors.deepPurple,
+    'บุหรี่ไฟฟ้า': const Color.fromARGB(255, 204, 233, 98),
   };
 
   @override
@@ -106,7 +109,7 @@ class _SyncfusionDonutOverviewState extends State<SyncfusionDonutOverview> {
       _ChartData('โรคถุงลมโป่งพอง', widget.EmphysemaPercent ?? 0),
       _ChartData('โรคไตวายเรื้อรัง', widget.KidneyPercent ?? 0),
       _ChartData('โรคไขมันในเลือดสูง', widget.CholesterolPercent ?? 0),
-      _ChartData('บุหรี่ไฟฟ้า', 0),
+      _ChartData('บุหรี่ไฟฟ้า', widget.ECigarettePercent ?? 0),
     ];
 
     // final dataNonZero = fullData.where((d) => d.y > 0).toList();

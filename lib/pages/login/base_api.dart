@@ -67,51 +67,158 @@ class CallApiController {
     await prefs.setString('cid', cidonlynumber);
   }
 
-  Future<void> callHospitalCode() async {
-     await callAuthToken();
-    debugPrint('✅ testt2: ');
-    final url_hcode = Uri.parse('$baseurl/api/hospital');
-    final headers_hcode = {
-      'Content-Type': 'application/json',
-      // 'Authorization': 'Bearer $token',
-    };
-    final body_hcode = jsonEncode({
-      "page_size": 20000,
-    });
+  // เพิ่มตัวแปรเก็บข้อมูลโรงพยาบาลที่ค้นหาได้
+  String? foundProvinceCode;
+  String? foundProvinceName;
+  String? foundHospitalName;
+  Map<String, dynamic>? foundHospitalData;
 
-    try {
-      final response_hcode = await client.post(
-        url_hcode,
-        headers: headers_hcode,
-        body: body_hcode,
-      );
-      debugPrint('✅ testt3: ');
-      if (response_hcode.statusCode == 200) {
-        response_hcodeData = jsonDecode(response_hcode.body);
+// ฟังก์ชันบันทึกข้อมูลโรงพยาบาลที่ค้นหาได้
+  Future<void> saveFoundHospitalData(Map<String, dynamic> hospitalData) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
 
-        debugPrint('✅ hospital Success: ${response_hcode.body}');
-      } else {
-        //debugPrint('❌ Auth Failed: ${response_hcode.statusCode} ${response_hcode.body}');
-      }
-    } catch (e) {
-      //debugPrint('🚫 Error calling API: $e');
+    await prefs.setString('found_hospital_code', hospitalData['hospital_code'] ?? '');
+    await prefs.setString('found_hospital_name', hospitalData['hospital_name'] ?? '');
+    await prefs.setString('found_province_code', hospitalData['province_code'] ?? '');
+    await prefs.setString('found_province_name', hospitalData['province_name'] ?? '');
+    await prefs.setString('found_district_code', hospitalData['district_code'] ?? '');
+    await prefs.setString('found_district_name', hospitalData['district_name'] ?? '');
+    await prefs.setString('found_region_id', hospitalData['region_id']?.toString() ?? '');
+    await prefs.setString('found_region_name', hospitalData['region_name'] ?? '');
+    await prefs.setString('found_hospital_type_name', hospitalData['hospital_type_name'] ?? '');
+
+    debugPrint('✅ Hospital data saved to SharedPreferences');
+  }
+
+  // ปรับปรุงฟังก์ชันค้นหาและเก็บข้อมูล
+  Future<void> searchAndStoreHospitalDataAllPages(String rawHcode) async {
+    debugPrint('🔍 Starting comprehensive search for hospital: $rawHcode');
+
+    // ค้นหาจากทุกหน้า
+    Map<String, dynamic>? hospitalData = await findHospitalByCodeAllPages(rawHcode);
+
+    if (hospitalData != null) {
+      // เก็บข้อมูลที่ค้นหาได้
+      foundHospitalData = hospitalData;
+      foundProvinceCode = hospitalData['province_code'];
+      foundProvinceName = hospitalData['province_name'];
+      foundHospitalName = hospitalData['hospital_name'];
+
+      debugPrint('✅ Hospital found in multi-page search:');
+      debugPrint('   - Code: ${hospitalData['hospital_code']}');
+      debugPrint('   - Name: ${hospitalData['hospital_name']}');
+      debugPrint('   - Province Code: ${foundProvinceCode}');
+      debugPrint('   - Province Name: ${foundProvinceName}');
+      debugPrint('   - Region: ${hospitalData['region_name']}');
+
+      // บันทึกลง SharedPreferences
+      await saveFoundHospitalData(hospitalData);
+    } else {
+      debugPrint('❌ Hospital with code $rawHcode not found in any page');
+      // ล้างข้อมูลเดิม
+      foundHospitalData = null;
+      foundProvinceCode = null;
+      foundProvinceName = null;
+      foundHospitalName = null;
     }
   }
 
-  Future<void> callAuthToken() async {
-    debugPrint('✅ testt: ');
+  // ฟังก์ชันค้นหาโรงพยาบาลจากทุกหน้า
+  Future<Map<String, dynamic>?> findHospitalByCodeAllPages(String targetHospitalCode) async {
+    debugPrint('🔍 Searching for hospital code: $targetHospitalCode');
+
+    if (apiToken.isEmpty) {
+      debugPrint('🔄 No API token, calling auth first...');
+      bool authSuccess = await callAuthToken();
+      if (!authSuccess) {
+        debugPrint('❌ Authentication failed, cannot proceed');
+        return null;
+      }
+    }
+
+    int currentPage = 1;
+    int pageSize = 100;
+
+    while (true) {
+      debugPrint('🔍 Searching page $currentPage...');
+
+      final url_hcode = Uri.parse('$baseurl/api/hospital');
+      final headers_hcode = {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Authorization': 'Bearer $apiToken',
+        'Accept': 'application/json',
+        'Accept-Charset': 'utf-8',
+      };
+      final body_hcode = jsonEncode({
+        "page": currentPage,
+        "page_size": pageSize,
+      });
+
+      try {
+        final response_hcode = await client.post(
+          url_hcode,
+          headers: headers_hcode,
+          body: body_hcode,
+        );
+
+        if (response_hcode.statusCode == 200) {
+          // ถอดรหัส UTF-8
+          String responseBody;
+          try {
+            responseBody = utf8.decode(response_hcode.bodyBytes);
+          } catch (e) {
+            responseBody = response_hcode.body;
+          }
+
+          Map<String, dynamic> rawData = jsonDecode(responseBody);
+          Map<String, dynamic> pageData = fixEncodingInJson(rawData);
+
+          List<dynamic> hospitals = pageData['data'] ?? [];
+          int totalPages = pageData['total_pages'] ?? 1;
+
+          debugPrint('📋 Page $currentPage/$totalPages - ${hospitals.length} hospitals');
+
+          // ค้นหาในหน้าปัจจุบัน
+          for (var hospital in hospitals) {
+            if (hospital['hospital_code'] == targetHospitalCode) {
+              debugPrint('✅ Found hospital: ${hospital['hospital_name']} (Page $currentPage)');
+              return hospital;
+            }
+          }
+
+          // ถ้าหาไม่เจอและยังมีหน้าถัดไป
+          if (currentPage < totalPages) {
+            currentPage++;
+            // เพิ่ม delay เล็กน้อยเพื่อไม่ให้ spam server
+            await Future.delayed(Duration(milliseconds: 100));
+          } else {
+            // หาครบทุกหน้าแล้ว
+            break;
+          }
+        } else {
+          debugPrint('❌ Hospital API Failed: ${response_hcode.statusCode}');
+          break;
+        }
+      } catch (e) {
+        debugPrint('🚫 Error calling Hospital API: $e');
+        break;
+      }
+    }
+
+    debugPrint('❌ Hospital with code $targetHospitalCode not found in all pages');
+    return null;
+  }
+
+// ปรับปรุง callAuthToken() ให้ return boolean เพื่อให้ทราบสถานะ
+  Future<bool> callAuthToken() async {
+    debugPrint('🔄 Calling Auth Token API...');
 
     final url = Uri.parse('$baseurl/api/auth');
-
-    // const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTc0NTkzMTQ4NX0.EYIBiGIOzhvFo71BMjEYbGzrcfwv8rhz6ZKu-M9XWkg';
-
     final headers = {
       'Content-Type': 'application/json',
-      // 'Authorization': 'Bearer $token',
     };
-
     final body = jsonEncode({
-      "username": username, //admin
+      "username": username,
       "password": password,
     });
 
@@ -124,16 +231,137 @@ class CallApiController {
 
       if (response.statusCode == 200) {
         responseData = jsonDecode(response.body);
-        apiToken = responseData['access_token'];
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('apiToken', apiToken);
-        // setState(() {});
-        //debugPrint('✅ Auth Success: ${response.body}');
+        apiToken = responseData['access_token'] ?? '';
+
+        if (apiToken.isNotEmpty) {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('apiToken', apiToken);
+          debugPrint('✅ Auth Success - Token saved');
+          return true;
+        } else {
+          debugPrint('❌ Auth Success but no token received');
+          return false;
+        }
       } else {
-        //debugPrint('❌ Auth Failed: ${response.statusCode} ${response.body}');
+        debugPrint('❌ Auth Failed: ${response.statusCode} ${response.body}');
+        return false;
       }
     } catch (e) {
-      //debugPrint('🚫 Error calling API: $e');
+      debugPrint('🚫 Error calling Auth API: $e');
+      return false;
+    }
+  }
+
+  String decodeUtf8(String input) {
+    try {
+      // ลองถอดรหัส UTF-8 หลายแบบ
+      List<int> bytes = latin1.encode(input);
+      return utf8.decode(bytes);
+    } catch (e) {
+      // ถ้าไม่สำเร็จ return ค่าเดิม
+      return input;
+    }
+  }
+
+  // ฟังก์ชันแก้ไขข้อมูล JSON ที่มีปัญหา encoding
+  Map<String, dynamic> fixEncodingInJson(Map<String, dynamic> data) {
+    Map<String, dynamic> fixedData = {};
+
+    data.forEach((key, value) {
+      if (value is String) {
+        fixedData[key] = decodeUtf8(value);
+      } else if (value is Map<String, dynamic>) {
+        fixedData[key] = fixEncodingInJson(value);
+      } else if (value is List) {
+        fixedData[key] = value.map((item) {
+          if (item is Map<String, dynamic>) {
+            return fixEncodingInJson(item);
+          } else if (item is String) {
+            return decodeUtf8(item);
+          }
+          return item;
+        }).toList();
+      } else {
+        fixedData[key] = value;
+      }
+    });
+
+    return fixedData;
+  }
+
+// หรือถ้าต้องการให้ callHospitalCode() ตรวจสอบก่อนเรียก
+  Future<void> callHospitalCodeSafe() async {
+    // ตรวจสอบว่ามี apiToken หรือไม่
+    if (apiToken.isEmpty) {
+      debugPrint('🔄 No API token, calling auth first...');
+      bool authSuccess = await callAuthToken();
+      if (!authSuccess) {
+        debugPrint('❌ Authentication failed, cannot proceed');
+        return;
+      }
+    }
+
+    // ตรวจสอบอีกครั้งหลังจาก auth
+    if (apiToken.isEmpty) {
+      debugPrint('❌ Still no API token after authentication');
+      return;
+    }
+
+    debugPrint('✅ Using API Token: ${apiToken.substring(0, 20)}...');
+
+    final url_hcode = Uri.parse('$baseurl/api/hospital');
+    final headers_hcode = {
+      'Content-Type': 'application/json; charset=utf-8', // เพิ่ม charset
+      'Authorization': 'Bearer $apiToken',
+      'Accept': 'application/json', // เพิ่ม Accept header
+      'Accept-Charset': 'utf-8', // เพิ่ม Accept-Charset
+    };
+    final body_hcode = jsonEncode({
+      "page_size": 100,
+    });
+
+    try {
+      final response_hcode = await client.post(
+        url_hcode,
+        headers: headers_hcode,
+        body: body_hcode,
+      );
+
+      if (response_hcode.statusCode == 200) {
+        // ตรวจสอบ Content-Type ของ response
+        String? contentType = response_hcode.headers['content-type'];
+        debugPrint('📋 Response Content-Type: $contentType');
+
+        // ถอดรหัส response body ด้วย UTF-8
+        String responseBody;
+        try {
+          responseBody = utf8.decode(response_hcode.bodyBytes);
+        } catch (e) {
+          debugPrint('⚠️ UTF-8 decode failed, using response.body');
+          responseBody = response_hcode.body;
+        }
+
+        // Parse JSON
+        Map<String, dynamic> rawData = jsonDecode(responseBody);
+
+        // แก้ไข encoding ใน JSON
+        response_hcodeData = fixEncodingInJson(rawData);
+
+        debugPrint('✅ Hospital Success: Total ${response_hcodeData['total']} items');
+
+        // แสดงตัวอย่างข้อมูลที่แก้ไขแล้ว
+        if (response_hcodeData['data'] != null && response_hcodeData['data'].isNotEmpty) {
+          var firstHospital = response_hcodeData['data'][0];
+          debugPrint('📋 Sample hospital data:');
+          debugPrint('   - Code: ${firstHospital['hospital_code']}');
+          debugPrint('   - Name: ${firstHospital['hospital_name']}');
+          debugPrint('   - Province: ${firstHospital['province_name']}');
+        }
+      } else {
+        debugPrint('❌ Hospital API Failed: ${response_hcode.statusCode} ${response_hcode.body}');
+      }
+    } catch (e) {
+      debugPrint('🚫 Error calling Hospital API: $e');
     }
   }
 
@@ -161,7 +389,7 @@ class CallApiController {
       final response = await http.Client().post(url, body: jsonEncode(payload), headers: headers);
       //debugPrint("Provider : ${response.body}");
       Map<String, dynamic> decodedData = jsonDecode(response.body);
-      //debugPrint("decodedData : ${decodedData['data']}");
+      debugPrint("decodedData : ${decodedData['data']}");
       if (decodedData['status_code'] == 200) {
         mophAccessTokenProvider = decodedData['data']['access_token'].toString();
         // _setAccesstoken(mophAccessTokenProvider);
@@ -191,8 +419,8 @@ class CallApiController {
       final response = await http.Client().get(url, headers: headers);
       Map<String, dynamic> decodedData = await jsonDecode(response.body);
 
-      //debugPrint('res.body Path2 : ${decodedData}');
-      // //debugPrint('CID ${Jwt.parseJwt(decodedData['data']['id_card_encrypt'])}');
+      debugPrint('res.body Path2 : ${decodedData}');
+      //debugPrint('CID ${Jwt.parseJwt(decodedData['data']['id_card_encrypt'])}');
 
       if (decodedData['status_code'] == 200) {
         // Map<String, dynamic> cidData = Jwt.parseJwt(decodedData['data']['id_card_encrypt']);
@@ -369,26 +597,83 @@ class CallApiController {
             final accessCode = decoded['client']?['access_code_level3'] ?? '';
             final checkaccess4 = decoded['client']?['access_code_level4'] ?? '';
             final provinceCodes = extractProvinceCodes(accessCode);
+            // ดึงค่า access_code_level3 มาตรวจสอบ
+            final accessCodeLevel3 = decoded['client']?['access_code_level3'] ?? '';
+            final accessCodeLevel5 = decoded['client']?['access_code_level5'] ?? '';
 
             final client = decoded['client'] ?? {};
-            String checkAccess = '1';
+            String checkAccess = '1'; // ค่าเริ่มต้น
 
-            // for (int i = 5; i >= 1; i--) {
-            //   final value = client['access_code_level$i']?.toString().trim();
-            //   if (value != null && value.isNotEmpty && value != "''") {
-            //     checkAccess = i.toString();
-            //     break;
-            //   }
-            // }
-            checkAccess = '1';
-            final String rawHcode = "00075";
+            // ใช้ hospital code จริงจาก itemHospital
+            final String hospitalCode = '24683';
             // itemHospital['hcode'] as String;
 
-            if (checkAccess == '1' && rawHcode.compareTo('00001') >= 0 && rawHcode.compareTo('00075') <= 0) {
-              await callAuthToken();
+            log('🔍 Checking Access Level for Hospital Code: $hospitalCode');
 
-              //--------------
-              await callHospitalCode();
+            // ตรวจสอบลำดับความสำคัญ: Level 5 → 4 → 3 → 1
+
+            // Priority 1: Access Level 5 (Specific Hospital Codes)
+            if (isAccessLevel5Hospital(hospitalCode) || !isEmptyOrQuotes(accessCodeLevel5)) {
+              checkAccess = '5';
+              log('🔄 Access Level upgraded to 5 (Specific Hospital Codes)');
+
+              await callHospitalCodeSafe();
+              await searchAndStoreHospitalDataAllPages(hospitalCode);
+
+              if (foundProvinceCode != null) {
+                log('✅ Found Province Code: $foundProvinceCode');
+
+                if (!provinceCodes.contains(foundProvinceCode)) {
+                  provinceCodes.add(foundProvinceCode!);
+                  log('✅ Added province code $foundProvinceCode to provinceCodes');
+                } else {
+                  log('ℹ️ Province code $foundProvinceCode already exists, skipping');
+                }
+              }
+            }
+            // Priority 2: Access Level 4 (Has access_code_level4)
+            else if (!isEmptyOrQuotes(checkaccess4)) {
+              checkAccess = '4';
+              log('🔄 Access Level upgraded to 4 (Has access_code_level4: $checkaccess4)');
+
+              await callHospitalCodeSafe();
+              await searchAndStoreHospitalDataAllPages(hospitalCode);
+
+              if (foundProvinceCode != null) {
+                log('✅ Found Province Code: $foundProvinceCode');
+
+                if (!provinceCodes.contains(foundProvinceCode)) {
+                  provinceCodes.add(foundProvinceCode!);
+                  log('✅ Added province code $foundProvinceCode to provinceCodes');
+                } else {
+                  log('ℹ️ Province code $foundProvinceCode already exists, skipping');
+                }
+              }
+            }
+            // Priority 3: Access Level 3 (Hospital Range 00001-00075)
+            else if ((hospitalCode.compareTo('00001') >= 0 && hospitalCode.compareTo('00075') <= 0) || hospitalCode == '24683' || !isEmptyOrQuotes(accessCodeLevel3)) {
+              checkAccess = '3';
+              log('🔄 Access Level upgraded to 3 (Hospital Range: 00001-00075)    24683 บึงกาฬจังหวัดใหม่');
+
+              await callHospitalCodeSafe();
+              await searchAndStoreHospitalDataAllPages(hospitalCode);
+
+              if (foundProvinceCode != null) {
+                log('✅ Found Province Code: $foundProvinceCode');
+
+                if (!provinceCodes.contains(foundProvinceCode)) {
+                  provinceCodes.add(foundProvinceCode!);
+                  log('✅ Added province code $foundProvinceCode to provinceCodes');
+                } else {
+                  log('ℹ️ Province code $foundProvinceCode already exists, skipping');
+                }
+              }
+            }
+            // Priority 4: Access Level 1 (Default - ไม่เข้าเงื่อนไขไหนเลย)
+            else {
+              checkAccess = '1';
+              log('ℹ️ Access Level remains 1 (Default - No special conditions met)');
+              log('Hospital Code: $hospitalCode does not meet any upgrade criteria');
             }
 
             await handleAccessLevel4(decoded);
@@ -488,11 +773,50 @@ class CallApiController {
     }
   }
 
+  bool isEmptyOrQuotes(String value) {
+    if (value.isEmpty) return true;
+
+    String trimmed = value.trim();
+    if (trimmed.isEmpty) return true;
+
+    // จับกรณี "''" หรือ"''" หรือ "null" หรือ "undefined"
+    if (trimmed == "''" || trimmed == '""' || trimmed == 'null' || trimmed == 'undefined' || trimmed == '0') {
+      return true;
+    }
+
+    return false;
+  }
+
+  // ฟังก์ชันตรวจสอบ Access Level 5
+  bool isAccessLevel5Hospital(String hospitalCode) {
+    // รายการโรงพยาบาลที่ได้ Access Level 5
+    const List<String> level5Hospitals = [
+      '41300',
+      '14165',
+      '25039',
+    ];
+
+    bool isLevel5 = level5Hospitals.contains(hospitalCode);
+
+    if (isLevel5) {
+      log('✅ Hospital $hospitalCode is in Access Level 5 list');
+    } else {
+      log('ℹ️ Hospital $hospitalCode is not in Access Level 5 list');
+    }
+
+    return isLevel5;
+  }
+
   Future<void> handleAccessLevel4(Map<String, dynamic> decoded) async {
-    final checkaccess4 =
-        // '4';
-        decoded['client']?['access_code_level4'] ?? '';
-    if (checkaccess4.isEmpty) return;
+    final checkaccess4 = decoded['client']?['access_code_level4'] ?? '';
+
+    // ใช้ helper function เดียวกัน
+    if (isEmptyOrQuotes(checkaccess4)) {
+      print('❌ Access Level 4: ไม่มีข้อมูล (value: "$checkaccess4")');
+      return;
+    }
+
+    print('✅ Access Level 4: มีข้อมูล = "$checkaccess4"');
 
     final SharedPreferences prefs = await SharedPreferences.getInstance();
 

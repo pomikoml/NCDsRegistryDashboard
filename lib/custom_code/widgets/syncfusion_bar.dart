@@ -32,7 +32,7 @@ class _SyncfusionBarState extends State<SyncfusionBar> {
   late List<_ChartData> data;
   late TooltipBehavior _tooltip;
 
-  
+  final numberFormat = NumberFormat('#,###');
 
   String apiToken = '';
   dynamic responseData;
@@ -76,7 +76,7 @@ class _SyncfusionBarState extends State<SyncfusionBar> {
 
   List<dynamic> regionList = [];
   int totalregion = 0;
-final getX = Get.find<NCDsgetX>();
+  final getX = Get.find<NCDsgetX>();
   @override
   void initState() {
     super.initState();
@@ -123,7 +123,8 @@ final getX = Get.find<NCDsgetX>();
               xValueMapper: (_ChartData data, _) => data.x,
               yValueMapper: (_ChartData data, _) => data.y,
               pointColorMapper: (_ChartData data, _) => data.y == 0 ? const Color.fromARGB(0, 0, 0, 0) : const Color.fromRGBO(8, 142, 255, 1),
-              dataLabelMapper: (_ChartData data, _) => data.y == 0 ? '' : data.y.toString(),
+              // dataLabelMapper: (_ChartData data, _) => data.y == 0 ? '' : data.y.toString(),
+              dataLabelMapper: (_ChartData data, _) => data.y == 0 ? '' : numberFormat.format(data.y),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(8),
                 topRight: Radius.circular(8),

@@ -242,7 +242,7 @@ class _SyncfusionCombineChartsState extends State<SyncfusionCombineCharts> {
     final List<String> querylv42 = await getProvinceQuerylv4Params();
     querylv4 = querylv42.map((e) => e.toString()).toList();
     check_access_level =
-        //  '5';
+        // '5';
         await getCheckAccessLevel();
 
     // print('User Login: $userLogin');
@@ -382,11 +382,13 @@ class _SyncfusionCombineChartsState extends State<SyncfusionCombineCharts> {
     }
 
     // เงื่อนไขเฉพาะกรณีที่ไม่ได้อยู่ใน level 3 หรือ 4
-    if (isAllHospital && !(check_access_level == '3' || check_access_level == '4')) {
-      body.addAll({
-        'organization_code': hospitalCode
-      });
-    }
+    // if (isAllHospital && !(check_access_level == '3' || check_access_level == '4')) {
+    //   body.addAll({
+    //     'organization_code': [
+    //       hospitalCode
+    //     ]
+    //   });
+    // }
 
     final url = Uri.parse('$baseurl/api/summary/group-by-year');
 
@@ -441,29 +443,35 @@ class _SyncfusionCombineChartsState extends State<SyncfusionCombineCharts> {
 
   @override
   Widget build(BuildContext context) {
-    // _chartData = <ChartSampleData>[
-    //   ChartSampleData(x: '1', y: 500, secondSeriesYValue: 10.96),
-    //   ChartSampleData(x: '2', y: 1000, secondSeriesYValue: 7280.28),
-    //   ChartSampleData(x: '3', y: 3000, secondSeriesYValue: 9710.41),
-    // ];
-    // _chartData = List.generate(totalYear, (index) {
+    // _chartData = List.generate(yearDataList.length, (index) {
+    //   final item = yearDataList[index];
     //   return ChartSampleData(
-    //     x: '${index + 1}',
-    //     y: 500 + (index * 1000),
-    //     secondSeriesYValue: (index + 1) * 1000.0,
+    //     // x: '${index + 1}',
+    //     x: '${(item['fiscal_year'] ?? 0)}', // ✅ แสดงเป็นปี พ.ศ.
+
+    //     y: (item['count'] ?? 0).toDouble(),
+    //     // y: 2000000,
+    //     secondSeriesYValue: (item['rate_per_100000'] ?? 0).toDouble(),
     //   );
     // });
-    _chartData = List.generate(yearDataList.length, (index) {
-      final item = yearDataList[index];
-      return ChartSampleData(
-        // x: '${index + 1}',
-        x: '${(item['fiscal_year'] ?? 0)}', // ✅ แสดงเป็นปี พ.ศ.
 
+    // หาปี พ.ศ. ปัจจุบัน
+    final int currentThaiYear = DateTime.now().year + 543;
+
+    // กรองเอาเฉพาะ item ที่ fiscal_year <= ปีปัจจุบัน
+    final validItems = yearDataList.where((item) {
+      final fy = item['fiscal_year'] as int? ?? 0;
+      return fy <= currentThaiYear;
+    }).toList();
+
+    // สร้าง chartData จาก validItems แทน
+    _chartData = validItems.map((item) {
+      return ChartSampleData(
+        x: '${item['fiscal_year']}',
         y: (item['count'] ?? 0).toDouble(),
-        // y: 2000000,
         secondSeriesYValue: (item['rate_per_100000'] ?? 0).toDouble(),
       );
-    });
+    }).toList();
 
     return Container(
       width: widget.width,
@@ -510,10 +518,10 @@ class _SyncfusionCombineChartsState extends State<SyncfusionCombineCharts> {
               ),
               tooltipBehavior: _tooltipBehavior,
               plotAreaBorderWidth: 0,
-              primaryXAxis: const CategoryAxis(
-                initialZoomPosition: 0.8,
+              primaryXAxis: CategoryAxis(
+                initialZoomPosition: widget.selected! > 0 ? 0.1 : 0.8,
 
-                initialZoomFactor: 0.3,
+                initialZoomFactor: widget.selected! > 0 ? 1 : 0.3,
                 majorGridLines: MajorGridLines(width: 0),
                 edgeLabelPlacement: EdgeLabelPlacement.shift,
                 // labelStyle: TextStyle(color: Colors.transparent,),
@@ -530,7 +538,7 @@ class _SyncfusionCombineChartsState extends State<SyncfusionCombineCharts> {
                 maximum: suggestedMaxY.toDouble(),
                 numberFormat: NumberFormat.decimalPattern(),
                 interval: suggestedInterval.toDouble(),
-                majorGridLines: const MajorGridLines(width: 0),
+                majorGridLines: MajorGridLines(width: 0),
               ),
               axes: <ChartAxis>[
                 NumericAxis(
@@ -541,8 +549,8 @@ class _SyncfusionCombineChartsState extends State<SyncfusionCombineCharts> {
                   maximum: suggestedLineMaxY.toDouble(),
                   interval: suggestedLineInterval.toDouble(),
                   numberFormat: NumberFormat.decimalPattern(),
-                  majorGridLines: const MajorGridLines(width: 0),
-                  labelStyle: const TextStyle(color: Colors.black),
+                  majorGridLines: MajorGridLines(width: 0),
+                  labelStyle: TextStyle(color: Colors.black),
                   title: AxisTitle(text: 'อัตราประชากรต่อแสนคน'),
                 ),
               ],
@@ -550,11 +558,11 @@ class _SyncfusionCombineChartsState extends State<SyncfusionCombineCharts> {
                 ColumnSeries<ChartSampleData, String>(
                   name: 'จำนวนผู้ป่วย',
                   dataSource: _chartData,
-                  spacing: 0.3,
+                  spacing: widget.selected! > 0 ? 0.5 : 0.3,
                   width: _chartData.length == 1 ? 0.2 : 0.8,
                   xValueMapper: (ChartSampleData data, _) => data.x,
                   yValueMapper: (ChartSampleData data, _) => data.y,
-                  dataLabelSettings: const DataLabelSettings(
+                  dataLabelSettings: DataLabelSettings(
                     isVisible: true,
                     labelAlignment: ChartDataLabelAlignment.top,
                     textStyle: TextStyle(
@@ -575,8 +583,8 @@ class _SyncfusionCombineChartsState extends State<SyncfusionCombineCharts> {
                   yValueMapper: (ChartSampleData data, _) => data.secondSeriesYValue,
                   yAxisName: 'yAxis1',
                   color: Color(0xFF1A237E),
-                  markerSettings: const MarkerSettings(isVisible: true),
-                  dataLabelSettings: const DataLabelSettings(
+                  markerSettings: MarkerSettings(isVisible: true),
+                  dataLabelSettings: DataLabelSettings(
                     isVisible: true,
                     textStyle: TextStyle(
                       color: Colors.black,

@@ -38,6 +38,8 @@ class PatientNCDModel extends FlutterFlowModel<PatientNCDWidget> {
   TextEditingController? diseaseController;
   TextEditingController? filterstatusController;
 
+   int clientFilterPage = 1;
+final int clientPageSize = 20;
   @override
   void initState(BuildContext context) {}
 

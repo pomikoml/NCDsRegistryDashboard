@@ -137,40 +137,40 @@ class _BloodSummaryProvinceState extends State<BloodSummaryProvince> {
 
   final Map<String, String> provinceToRegionMap = {
     // เขต 1
-    '50': '1', '51': '1', '52': '1', '53': '1', '54': '1', '55': '1', '56': '1', '57': '1', '58': '1',
+    '50': '1', '51': '1', '52': '1', '54': '1', '55': '1', '56': '1', '57': '1', '58': '1',
 
     // เขต 2
-    '60': '2', '61': '2', '62': '2', '63': '2', '64': '2', '65': '2', '66': '2', '67': '2',
+    '63': '2', '64': '2', '65': '2', '67': '2', '53': '2',
 
     // เขต 3
-    '70': '3', '71': '3', '72': '3', '73': '3', '74': '3', '75': '3', '76': '3', '77': '3',
+    '60': '3', '61': '3', '62': '3', '66': '3', '18': '3',
 
     // เขต 4
-    '13': '4', '14': '4', '15': '4', '16': '4', '17': '4', '18': '4', '19': '4', '12': '4',
+    '12': '4', '13': '4', '14': '4', '15': '4', '16': '4', '17': '4', '19': '4', '26': '4',
 
     // เขต 5
-    '40': '5', '44': '5', '45': '5', '46': '5', '47': '5', '48': '5',
+    '70': '5', '71': '5', '72': '5', '73': '5', '74': '5', '75': '5', '76': '5', '77': '5',
 
     // เขต 6
-    '20': '6', '21': '6', '22': '6', '23': '6', '24': '6', '25': '6', '26': '6', '27': '6', '11': '6',
+    '11': '6', '20': '6', '21': '6', '22': '6', '23': '6', '24': '6', '25': '6', '27': '6',
 
     // เขต 7
-    '30': '7', '31': '7', '32': '7', '33': '7',
+    '40': '7', '44': '7', '45': '7', '46': '7',
 
     // เขต 8
-    '39': '8', '41': '8', '42': '8', '43': '8',
+    '38': '8', '39': '8', '41': '8', '42': '8', '43': '8', '47': '8', '48': '8',
 
     // เขต 9
-    '34': '9', '35': '9', '36': '9', '37': '9', '38': '9',
+    '30': '9', '31': '9', '32': '9', '36': '9',
 
     // เขต 10
-    '80': '10', '81': '10', '82': '10', '83': '10', '84': '10', '85': '10', '86': '10',
+    '33': '10', '34': '10', '35': '10', '37': '10', '49': '10',
 
     // เขต 11
-    '90': '11', '91': '11', '92': '11', '93': '11',
+    '80': '11', '81': '11', '82': '11', '83': '11', '84': '11', '85': '11', '86': '11',
 
     // เขต 12
-    '94': '12', '95': '12', '96': '12',
+    '90': '12', '91': '12', '92': '12', '93': '12', '94': '12', '95': '12', '96': '12',
 
     // เขต 13 (เฉพาะกรุงเทพฯ)
     '10': '13',
@@ -255,31 +255,75 @@ class _BloodSummaryProvinceState extends State<BloodSummaryProvince> {
     return ((approx / 10000).ceil()) * 10000;
   }
 
+  // SfCartesianChart _buildCartesianChart() {
+  //   final maxY = _getMaxY();
+  //   final interval = (maxY / 5).ceil(); // แบ่งเป็น 5 ช่วง
+
+  //   return SfCartesianChart(
+  //     plotAreaBorderWidth: 0,
+  //     primaryXAxis: CategoryAxis(
+  //       initialZoomFactor: 0.3, // เริ่มต้นที่ 50% ของแกน X
+  //       // initialZoomPosition: 0.2, // เริ่มต้นที่ตำแหน่งเริ่มต้นของแกน X
+  //       labelRotation: 45, // หมุนข้อความในแกน X ให้เอียง
+
+  //       majorGridLines: const MajorGridLines(width: 0),
+  //     ),
+  //     primaryYAxis: NumericAxis(
+  //       minimum: 0,
+  //       maximum: maxY.toDouble(),
+  //       interval: interval.toDouble(), // แบ่งเป็น 5 ช่วง
+  //       axisLine: const AxisLine(width: 0),
+  //       labelFormat: '{value}',
+  //       numberFormat: numberFormat, // ฟอร์แมตให้มี comma
+  //       majorTickLines: const MajorTickLines(size: 0),
+  //     ),
+  //     series: _buildColumnSeries(),
+  //     tooltipBehavior: _tooltipBehavior,
+  //     zoomPanBehavior: _zoomPanBehavior,
+  //   );
+  // }
+
+  // แทนที่ฟังก์ชัน _buildCartesianChart() เดิม
   SfCartesianChart _buildCartesianChart() {
     final maxY = _getMaxY();
-    final interval = (maxY / 5).ceil(); // แบ่งเป็น 5 ช่วง
+    final interval = (maxY / 5).ceil();
 
     return SfCartesianChart(
       plotAreaBorderWidth: 0,
       primaryXAxis: CategoryAxis(
-        initialZoomFactor: 0.3, // เริ่มต้นที่ 50% ของแกน X
-        // initialZoomPosition: 0.2, // เริ่มต้นที่ตำแหน่งเริ่มต้นของแกน X
-        labelRotation: 45, // หมุนข้อความในแกน X ให้เอียง
-
+        initialZoomFactor: _chartData.length <= 5 ? 1.0 : 0.3,
+        labelRotation: 45,
         majorGridLines: const MajorGridLines(width: 0),
+
+        // 🔧 ปรับ plotOffset เพื่อลดพื้นที่ว่างข้างต้น/ข้างล่าง
+        plotOffset: _chartData.length <= 3 ? 50 : 20,
+
+        // ควบคุมการแสดงผล label
+        labelIntersectAction: AxisLabelIntersectAction.none,
+
+        // ปรับ range mode
+        rangePadding: _chartData.length <= 3
+            ? ChartRangePadding.none // ไม่เพิ่ม padding เมื่อข้อมูลน้อย
+            : ChartRangePadding.auto,
       ),
       primaryYAxis: NumericAxis(
         minimum: 0,
         maximum: maxY.toDouble(),
-        interval: interval.toDouble(), // แบ่งเป็น 5 ช่วง
+        interval: interval.toDouble(),
         axisLine: const AxisLine(width: 0),
         labelFormat: '{value}',
-        numberFormat: numberFormat, // ฟอร์แมตให้มี comma
+        numberFormat: numberFormat,
         majorTickLines: const MajorTickLines(size: 0),
       ),
       series: _buildColumnSeries(),
       tooltipBehavior: _tooltipBehavior,
-      zoomPanBehavior: _zoomPanBehavior,
+      zoomPanBehavior: _chartData.length <= 5
+          ? ZoomPanBehavior(
+              enablePanning: false,
+              enablePinching: false,
+              enableDoubleTapZooming: false,
+            )
+          : _zoomPanBehavior,
     );
   }
 
@@ -311,15 +355,34 @@ class _BloodSummaryProvinceState extends State<BloodSummaryProvince> {
   //   );
   // }
 
+  // ปรับปรุงในส่วน _buildColumnSeries()
   List<ColumnSeries<ChartSampleData, String>> _buildColumnSeries() {
+    // คำนวณขนาดแท่งและระยะห่างตามจำนวนข้อมูล
+    double columnWidth;
+    double columnSpacing;
+
+    if (_chartData.length <= 2) {
+      // เมื่อมีข้อมูลน้อย ให้แท่งเล็กลงและระยะห่างมากขึ้น
+      columnWidth = 0.5;
+      columnSpacing = 0.8;
+    } else if (_chartData.length <= 5) {
+      columnWidth = 0.5;
+      columnSpacing = 0.6;
+    } else if (_chartData.length <= 10) {
+      columnWidth = 0.5;
+      columnSpacing = 0.4;
+    } else {
+      columnWidth = 0.5;
+      columnSpacing = 0.3;
+    }
+
     return <ColumnSeries<ChartSampleData, String>>[
       ColumnSeries<ChartSampleData, String>(
         dataSource: _chartData,
         xValueMapper: (ChartSampleData sales, int index) => sales.x,
         yValueMapper: (ChartSampleData sales, int index) => sales.y,
-        width: 0.2, // 👈 ทำให้แท่งเล็กลง
-        // spacing: 0.4,
-        spacing: 0.3,
+        width: columnWidth, // ขนาดแท่งแบบไดนามิก
+        spacing: columnSpacing, // ระยะห่างแบบไดนามิก
         dataLabelSettings: DataLabelSettings(
           isVisible: true,
           textStyle: const TextStyle(
@@ -332,7 +395,7 @@ class _BloodSummaryProvinceState extends State<BloodSummaryProvince> {
           },
         ),
         color: const Color.fromARGB(255, 27, 136, 224),
-        borderRadius: const BorderRadius.all(Radius.circular(8)), // โค้ง 8 px บนล่าง
+        borderRadius: const BorderRadius.all(Radius.circular(8)),
       ),
     ];
   }

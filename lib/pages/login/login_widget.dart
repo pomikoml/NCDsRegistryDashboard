@@ -703,7 +703,7 @@ class _LoginWidgetState extends State<LoginWidget> with TickerProviderStateMixin
                                                       ),
                                                 ),
                                                 Text(
-                                                  'VERSION 26.6.68.1',
+                                                  'VERSION 30.7.68.1',
                                                   style: FlutterFlowTheme.of(context).labelSmall.override(
                                                         fontFamily: 'Sarabun',
                                                         letterSpacing: 0.0,

@@ -3,6 +3,9 @@
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:n_c_ds_registry_dashboard/NCDs_getX.dart';
+import 'package:n_c_ds_registry_dashboard/components/health_region_widget.dart';
+import 'package:n_c_ds_registry_dashboard/components/pie_by_report/pie_by_report_widget.dart';
+import 'package:n_c_ds_registry_dashboard/components/pie_by_submit_status/pie_by_submit_status_widget.dart';
 import 'package:n_c_ds_registry_dashboard/custom_code/widgets/syncfusion_combine_charts.dart';
 import 'package:n_c_ds_registry_dashboard/pages/high_blood_pressure/chronickidneydisease_widget.dart';
 import 'package:n_c_ds_registry_dashboard/pages/high_blood_pressure/copd_widget.dart';
@@ -61,6 +64,8 @@ class _DashboardOverviewWidgetState extends State<DashboardOverviewWidget> with 
   String? hospitalName;
   String? scopeList;
   String? cid = '';
+
+  final numberFormat = NumberFormat('#,###');
 
   // final getX = Get.put(NCDsgetX());
   final getX = Get.find<NCDsgetX>();
@@ -154,6 +159,10 @@ class _DashboardOverviewWidgetState extends State<DashboardOverviewWidget> with 
     getX.fetchGroupByGender(fiscalYear: fiscalYear);
     getX.fetchRegionRatePer1000(fiscalYear: fiscalYear);
     getX.fetchGroupByRegion(fiscalYear: fiscalYear);
+    // ✅ เพิ่มการเรียกใช้ fetchGroupByRegionAndCd
+    getX.fetchGroupByRegionAndCd(fiscalYear: fiscalYear);
+    getX.fetchGroupByOrganizationAndCd(fiscalYear: fiscalYear);
+    getX.fetchAllSubmissionData(fiscalYear: fiscalYear);
   }
 
   @override
@@ -766,7 +775,8 @@ class _DashboardOverviewWidgetState extends State<DashboardOverviewWidget> with 
                                                               ),
                                                               Obx(() => Text(
                                                                     // '$diseaseDiabetesCount',
-                                                                    '${getX.diseaseDiabetesCount.value}',
+                                                                    // '${getX.diseaseDiabetesCount.value}',
+                                                                    numberFormat.format(getX.diseaseDiabetesCount.value),
                                                                     style: FlutterFlowTheme.of(context).titleLarge.override(
                                                                           fontFamily: 'Sarabun',
                                                                           color: FlutterFlowTheme.of(context).primary,
@@ -885,7 +895,8 @@ class _DashboardOverviewWidgetState extends State<DashboardOverviewWidget> with 
                                                               ),
                                                               Obx(() => Text(
                                                                     // '$diseaseHypertensionCount',
-                                                                    '${getX.diseaseHypertensionCount.value}',
+                                                                    // '${getX.diseaseHypertensionCount.value}',
+                                                                    numberFormat.format(getX.diseaseHypertensionCount.value),
                                                                     style: FlutterFlowTheme.of(context).titleLarge.override(
                                                                           fontFamily: 'Sarabun',
                                                                           color: FlutterFlowTheme.of(context).primary,
@@ -1004,7 +1015,8 @@ class _DashboardOverviewWidgetState extends State<DashboardOverviewWidget> with 
                                                               ),
                                                               Obx(() => Text(
                                                                     // '$diseaseKidneyCount',
-                                                                    '${getX.diseaseKidneyCount.value}',
+                                                                    // '${getX.diseaseKidneyCount.value}',
+                                                                    numberFormat.format(getX.diseaseKidneyCount.value),
                                                                     style: FlutterFlowTheme.of(context).titleLarge.override(
                                                                           fontFamily: 'Sarabun',
                                                                           color: FlutterFlowTheme.of(context).primary,
@@ -1122,7 +1134,8 @@ class _DashboardOverviewWidgetState extends State<DashboardOverviewWidget> with 
                                                                 ),
                                                               ),
                                                               Obx(() => Text(
-                                                                    '${getX.diseaseHeartCount.value}',
+                                                                    // '${getX.diseaseHeartCount.value}',
+                                                                    numberFormat.format(getX.diseaseHeartCount.value),
                                                                     style: FlutterFlowTheme.of(context).titleLarge.override(
                                                                           fontFamily: 'Sarabun',
                                                                           color: FlutterFlowTheme.of(context).primary,
@@ -1240,7 +1253,8 @@ class _DashboardOverviewWidgetState extends State<DashboardOverviewWidget> with 
                                                               ),
                                                               Obx(() => Text(
                                                                     // '$diseaseHeartStrokeCount',
-                                                                    '${getX.diseaseStrokeCount.value}',
+                                                                    // '${getX.diseaseStrokeCount.value}',
+                                                                    numberFormat.format(getX.diseaseStrokeCount.value),
                                                                     style: FlutterFlowTheme.of(context).titleLarge.override(
                                                                           fontFamily: 'Sarabun',
                                                                           color: FlutterFlowTheme.of(context).primary,
@@ -1359,7 +1373,8 @@ class _DashboardOverviewWidgetState extends State<DashboardOverviewWidget> with 
                                                               ),
                                                               Obx(() => Text(
                                                                     // '$diseaseEmphysemaCount',
-                                                                    '${getX.diseaseEmphysemaCount.value}',
+                                                                    // '${getX.diseaseEmphysemaCount.value}',
+                                                                    numberFormat.format(getX.diseaseEmphysemaCount.value),
                                                                     style: FlutterFlowTheme.of(context).titleLarge.override(
                                                                           fontFamily: 'Sarabun',
                                                                           color: FlutterFlowTheme.of(context).primary,
@@ -1479,7 +1494,8 @@ class _DashboardOverviewWidgetState extends State<DashboardOverviewWidget> with 
                                                               ),
                                                               Obx(() => Text(
                                                                     // '$diseaseCholesterolCount',
-                                                                    '${getX.diseaseCholesterolCount.value}',
+                                                                    // '${getX.diseaseCholesterolCount.value}',
+                                                                    numberFormat.format(getX.diseaseCholesterolCount.value),
                                                                     style: FlutterFlowTheme.of(context).titleLarge.override(
                                                                           fontFamily: 'Sarabun',
                                                                           color: FlutterFlowTheme.of(context).primary,
@@ -1598,7 +1614,8 @@ class _DashboardOverviewWidgetState extends State<DashboardOverviewWidget> with 
                                                               ),
                                                               Obx(() => Text(
                                                                     // '$diseaseObesityCount',
-                                                                    '${getX.diseaseObesityCount.value}',
+                                                                    // '${getX.diseaseObesityCount.value}',
+                                                                    numberFormat.format(getX.diseaseObesityCount.value),
                                                                     style: FlutterFlowTheme.of(context).titleLarge.override(
                                                                           fontFamily: 'Sarabun',
                                                                           color: FlutterFlowTheme.of(context).primary,
@@ -1716,7 +1733,8 @@ class _DashboardOverviewWidgetState extends State<DashboardOverviewWidget> with 
                                                               ),
                                                               Obx(() => Text(
                                                                     // '0',
-                                                                    '${getX.e_cigaretteCount.value}',
+                                                                    // '${getX.e_cigaretteCount.value}',
+                                                                    numberFormat.format(getX.e_cigaretteCount.value),
                                                                     // '$diseaseCancerCount',
                                                                     style: FlutterFlowTheme.of(context).titleLarge.override(
                                                                           fontFamily: 'Sarabun',
@@ -1880,6 +1898,7 @@ class _DashboardOverviewWidgetState extends State<DashboardOverviewWidget> with 
                                                   KidneyPercent: getX.diseaseKidneyPercent.value,
                                                   ObesityPercent: getX.diseaseObesityPercent.value,
                                                   cancerPercent: getX.diseaseCancerPercent.value,
+                                                  ECigarettePercent: getX.e_cigarettePercent.value,
                                                 ),
                                               ),
                                             )),
@@ -2643,7 +2662,46 @@ class _DashboardOverviewWidgetState extends State<DashboardOverviewWidget> with 
                             ),
                           ].divide(SizedBox(width: 12.0)),
                         ),
+                        Row(
+                          mainAxisSize: MainAxisSize.max,
+                          children: [
+                            Expanded(
+                              child: wrapWithModel(
+                                model: _model.pieByReportModel,
+                                updateCallback: () => safeSetState(() {}),
+                                child: Obx(() => PieByReportWidget(
+                                      submitted: getX.statusSubmittedCount.value,
+                                      await: getX.statusNotSubmittedCount.value,
+                                      submittedPercent: getX.statusSubmittedPercent.value,
+                                      awaitPercent: getX.statusNotSubmittedPercent.value,
+                                    )),
+                              ),
+                            ),
+                            SizedBox(
+                              width: 12,
+                            ),
+                            Expanded(
+                              child: wrapWithModel(
+                                model: _model.pieBySubmitStatusModel,
+                                updateCallback: () => safeSetState(() {}),
+                                child: Obx(() => PieBySubmitStatusWidget(
+                                      ontime: getX.statusExcellentCount.value,
+                                      pending: getX.statusPendingCount.value,
+                                      late: getX.statusLateCount.value,
+                                      ontimePercent: getX.statusExcellentPercent.value,
+                                      pendingPercent: getX.statusPendingPercent.value,
+                                      latePercent: getX.statusLatePercent.value,
+                                    )),
+                              ),
+                            ),
+                          ],
+                        ),
 
+                        wrapWithModel(
+                          model: _model.healthRegionModel,
+                          updateCallback: () => safeSetState(() {}),
+                          child: HealthRegionWidget(),
+                        ),
                         // .animateOnPageLoad(animationsMap['rowOnPageLoadAnimation3']!),
                       ].divide(SizedBox(height: 12.0)),
                     ),
