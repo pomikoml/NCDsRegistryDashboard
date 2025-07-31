@@ -73,10 +73,20 @@ class _SyncfusionCombineChartsState extends State<SyncfusionCombineCharts> {
   List<String> query = [];
   List<String> querylv4 = [];
 
+  // เพิ่มตัวแปรสำหรับควบคุมการอัพเดต UI
+  bool _isDataLoaded = false;
+  bool _hasDataChanged = false;
+  int _lastSelectedYear = 0;
+
   @override
   void initState() {
     super.initState();
     _loadLoginData();
+    _initializeTooltipAndZoom();
+    callAuthAPI();
+  }
+
+  void _initializeTooltipAndZoom() {
     _tooltipBehavior = TooltipBehavior(
       enable: true,
       canShowMarker: false,
@@ -148,24 +158,30 @@ class _SyncfusionCombineChartsState extends State<SyncfusionCombineCharts> {
         return const SizedBox.shrink();
       },
     );
+
+    // กำหนด ZoomPanBehavior เริ่มต้น (จะถูกปรับใน build method)
     _zoomPan = ZoomPanBehavior(
       enablePanning: true,
       zoomMode: ZoomMode.x,
-      // เริ่มต้นให้ซูมออกเหลือแค่ 30% ของข้อมูล
-      // initialZoomPosition: 0,
-      // initialZoomFactor: 0.3,
       enablePinching: true,
-      // enablePinching: false,
       enableDoubleTapZooming: true,
     );
-    callAuthAPI();
   }
 
+  @override
   void didUpdateWidget(covariant SyncfusionCombineCharts oldWidget) {
     super.didUpdateWidget(oldWidget);
 
     if (widget.selected != oldWidget.selected) {
       debugPrint('📌 ปีเปลี่ยนจาก ${oldWidget.selected} -> ${widget.selected}');
+      _lastSelectedYear = widget.selected ?? 0;
+      _hasDataChanged = true;
+
+      // รีเซ็ตสถานะการโหลดข้อมูล
+      setState(() {
+        _isDataLoaded = false;
+      });
+
       fetchGroupByCdCode(fiscalYear: widget.selected ?? DateTime.now().year + 543);
     }
   }
@@ -199,30 +215,13 @@ class _SyncfusionCombineChartsState extends State<SyncfusionCombineCharts> {
     return prefs.getString('cid') ?? '-';
   }
 
-  // Future<String> getProvinceQueryParams() async {
-  //   final prefs = await SharedPreferences.getInstance();
-  //   final codes = prefs.getStringList('org_province_codes') ?? [];
-  //   return codes.map((c) => 'org_province_code=$c').join('&');
-  // }
-
-  // Future<String> getProvinceQuerylv4Params() async {
-  //   final prefs = await SharedPreferences.getInstance();
-  //   final codes = prefs.getStringList('access_level4_province_codes') ?? [];
-  //   return codes.map((c) => 'org_province_code=$c').join('&');
-  // }
   Future<List<String>> getProvinceQueryParams() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    // final codes = prefs.getStringList('org_province_codes') ?? [];
     return prefs.getStringList('org_province_codes') ?? [];
-    // return codes.map((c) => 'org_province_code=$c').join('&');
   }
 
   Future<List<String>> getProvinceQuerylv4Params() async {
-    // final prefs = await SharedPreferences.getInstance();
-    // final codes = prefs.getStringList('access_level4_province_codes') ?? [];
-    // return codes.map((c) => 'org_province_code=$c').join('&');
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    // final codes = prefs.getStringList('org_province_codes') ?? [];
     return prefs.getStringList('access_level4_province_codes') ?? [];
   }
 
@@ -244,23 +243,13 @@ class _SyncfusionCombineChartsState extends State<SyncfusionCombineCharts> {
     check_access_level =
         // '5';
         await getCheckAccessLevel();
-
-    // print('User Login: $userLogin');
-    // print('Hospital Code: $hospitalCode');
-    // print('Hospital Name: $hospitalName');
-    // print('Scope List: $scopeList');
-
-    // คุณสามารถใช้ค่าที่ดึงมาเพื่อทำสิ่งต่างๆ ตามที่คุณต้องการ
   }
 
   Future<void> callAuthAPI() async {
     final url = Uri.parse('$baseurl/api/auth');
 
-    // const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTc0NTkzMTQ4NX0.EYIBiGIOzhvFo71BMjEYbGzrcfwv8rhz6ZKu-M9XWkg';
-
     final headers = {
       'Content-Type': 'application/json',
-      // 'Authorization': 'Bearer $token',
     };
 
     final body = jsonEncode({
@@ -289,23 +278,10 @@ class _SyncfusionCombineChartsState extends State<SyncfusionCombineCharts> {
       //debugPrint('🚫 Error calling API: $e');
     }
 
-    // await fetchGroupByCdCode(fiscalYear: 0);
     await fetchGroupByCdCode(fiscalYear: widget.selected ?? 0);
   }
 
-  // Map<String, dynamic>? findDiseaseByCode(String code) {
-  //   return summaryList.firstWhere(
-  //     (item) => item['cd_code'] == code,
-  //     orElse: () => null,
-  //   );
-  // }
-
   Future<void> fetchGroupByCdCode({required int fiscalYear}) async {
-    //debugPrint('apiToken: ${apiToken}');
-    // final url = Uri.parse('$baseurl/api/summary/group-by-year?start_year=2023&end_year=2025&organization_code=$hospitalCode');
-
-    // final url;
-    // final fiscalParam = '${fiscalYear}';
     final int currentYear = DateTime.now().year;
 
     int startY;
@@ -320,44 +296,9 @@ class _SyncfusionCombineChartsState extends State<SyncfusionCombineCharts> {
       endY = startY;
     }
     final isAllHospital = hospitalCode == null || hospitalCode == '25039' || hospitalCode == '99999' || hospitalCode == '00000';
-    // final hasQuery = query != null && query!.trim().isNotEmpty;
-
-    // String urlStr = '$baseurl/api/summary/group-by-year?start_year=$startY&end_year=$endY';
-
-    // if (check_access_level == '5') {
-    //   // ไม่มีการกรองเพิ่มเติม
-    // } else if (check_access_level == '4') {
-    //   urlStr += '&$querylv4';
-    // } else if (check_access_level == '3') {
-    //   if (hasQuery) {
-    //     urlStr += '&$query';
-    //   }
-    // } else {
-    //   if (isAllHospital) {
-    //     // ไม่เพิ่ม organization_code
-    //     urlStr += '&organization_code=$hospitalCode';
-    //   } else {
-    //     urlStr += '&organization_code=$hospitalCode';
-    //   }
-    // }
-
-    // url = Uri.parse(urlStr);
-
-    // final headers = {
-    //   'Content-Type': 'application/json',
-    //   'Authorization': 'Bearer $apiToken', // ใช้ token ที่ได้จาก login
-    // };
-
-    // try {
-    //   final response = await client.get(
-    //     url,
-    //     headers: headers,
-    //   );
 
     // --- สร้าง body แทน query string ---
     Map<String, dynamic> body = {
-      // 'start_year': startY,
-      // 'end_year': endY,
       'fiscal_year': fiscalYear,
     };
 
@@ -368,7 +309,6 @@ class _SyncfusionCombineChartsState extends State<SyncfusionCombineCharts> {
         'org_province_code': querylv4
       });
     } else if (check_access_level == '3') {
-      // if (hasQuery)
       body.addAll({
         'org_province_code': query
       });
@@ -378,17 +318,7 @@ class _SyncfusionCombineChartsState extends State<SyncfusionCombineCharts> {
           hospitalCode
         ]
       });
-      // if (hasQuery) body.addAll({'query': query});
     }
-
-    // เงื่อนไขเฉพาะกรณีที่ไม่ได้อยู่ใน level 3 หรือ 4
-    // if (isAllHospital && !(check_access_level == '3' || check_access_level == '4')) {
-    //   body.addAll({
-    //     'organization_code': [
-    //       hospitalCode
-    //     ]
-    //   });
-    // }
 
     final url = Uri.parse('$baseurl/api/summary/group-by-year');
 
@@ -398,29 +328,41 @@ class _SyncfusionCombineChartsState extends State<SyncfusionCombineCharts> {
     };
 
     try {
-      // final response = await client.get(url, headers: headers);
       final response = await client.post(url, headers: headers, body: jsonEncode(body));
 
       if (response.statusCode == 200) {
         final decoded = utf8.decode(response.bodyBytes);
         final data = jsonDecode(decoded);
-        //debugPrint('✅ year Data: $data');
-        // ใช้ setState() หรือเก็บ data ตามที่ต้องการ
+
         setState(() {
           yearDataList = List<Map<String, dynamic>>.from(data['data']);
+          _isDataLoaded = true;
+          _hasDataChanged = true;
         });
 
-        // Reset zoom to ensure proper display when data length changes
+        debugPrint('✅ Year Data Loaded, items: ${yearDataList.length}');
+
+        // บังคับให้ UI อัพเดตหลังจากข้อมูลโหลดเสร็จ
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          _zoomPan.reset();
+          if (mounted) {
+            setState(() {
+              _hasDataChanged = false;
+            });
+          }
         });
-
-        //debugPrint('✅ Year Data Loaded, total: ${(totalYear)}');
       } else {
-        //debugPrint('❌ Failed to fetch year: ${response.statusCode} ${response.body}');
+        debugPrint('❌ Failed to fetch year: ${response.statusCode} ${response.body}');
+        setState(() {
+          _isDataLoaded = true;
+          yearDataList = [];
+        });
       }
     } catch (e) {
-      //debugPrint('🚫 Error fetching Year: $e');
+      debugPrint('🚫 Error fetching Year: $e');
+      setState(() {
+        _isDataLoaded = true;
+        yearDataList = [];
+      });
     }
   }
 
@@ -435,19 +377,46 @@ class _SyncfusionCombineChartsState extends State<SyncfusionCombineCharts> {
     return rounded;
   }
 
+  // ฟังก์ชันสร้าง ZoomPanBehavior ตามจำนวนข้อมูล
+  ZoomPanBehavior _createZoomPanBehavior(int dataLength, bool isSingleYear) {
+    if (dataLength <= 1) {
+      // ข้อมูลเท่ากับ 1 หรือไม่มีข้อมูล - ใช้กราฟปกติไม่ต้องซูม
+      return ZoomPanBehavior(
+        enablePanning: false,
+        enablePinching: false,
+        enableDoubleTapZooming: false,
+        zoomMode: ZoomMode.x,
+      );
+    } else {
+      // ข้อมูลมากกว่า 1 - ใช้กราฟแบบซูม
+      return ZoomPanBehavior(
+        enablePanning: true,
+        zoomMode: ZoomMode.x,
+        enablePinching: true,
+        enableDoubleTapZooming: true,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // _chartData = List.generate(yearDataList.length, (index) {
-    //   final item = yearDataList[index];
-    //   return ChartSampleData(
-    //     // x: '${index + 1}',
-    //     x: '${(item['fiscal_year'] ?? 0)}', // ✅ แสดงเป็นปี พ.ศ.
-
-    //     y: (item['count'] ?? 0).toDouble(),
-    //     // y: 2000000,
-    //     secondSeriesYValue: (item['rate_per_100000'] ?? 0).toDouble(),
-    //   );
-    // });
+    // แสดง loading indicator ถ้าข้อมูลยังไม่โหลดเสร็จ
+    if (!_isDataLoaded) {
+      return Container(
+        width: widget.width,
+        height: widget.height ?? 300,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('กำลังโหลดข้อมูล...', style: TextStyle(fontSize: 14)),
+            ],
+          ),
+        ),
+      );
+    }
 
     // หาปี พ.ศ. ปัจจุบัน
     final int currentThaiYear = DateTime.now().year + 543;
@@ -467,11 +436,37 @@ class _SyncfusionCombineChartsState extends State<SyncfusionCombineCharts> {
       );
     }).toList();
 
-    final bool isSingleBar = _chartData.length == 1;
+    // ตรวจสอบว่าเป็นการดูปีเฉพาะหรือไม่
+    final bool isSingleYear = (widget.selected != null && widget.selected! > 0);
+    final int dataLength = _chartData.length;
+
+    // สร้าง ZoomPanBehavior ตามเงื่อนไข
+    _zoomPan = _createZoomPanBehavior(dataLength, isSingleYear);
+
+    // แสดงข้อความเมื่อไม่มีข้อมูล
+    if (_chartData.isEmpty) {
+      return Container(
+        width: widget.width,
+        height: widget.height ?? 300,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.bar_chart, size: 64, color: Colors.grey),
+              SizedBox(height: 16),
+              Text(
+                'ไม่มีข้อมูลในช่วงที่เลือก',
+                style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return Container(
       width: widget.width,
-      height: widget.height ?? 300, // Provide a default height if none is provided
+      height: widget.height ?? 300,
       child: LayoutBuilder(
         builder: (context, constraints) {
           late double maxY;
@@ -480,9 +475,7 @@ class _SyncfusionCombineChartsState extends State<SyncfusionCombineCharts> {
 
           if (_chartData.isNotEmpty) {
             maxY = _chartData.map((d) => d.y).reduce(max);
-            // suggestedMaxY = (maxY * 1.2).ceilToDouble();
             suggestedMaxY = roundUpToNiceNumber(maxY * 1.2);
-
             suggestedInterval = (suggestedMaxY / 5).ceilToDouble();
           } else {
             maxY = 0;
@@ -496,40 +489,37 @@ class _SyncfusionCombineChartsState extends State<SyncfusionCombineCharts> {
 
           if (_chartData.isNotEmpty) {
             maxLineY = _chartData.map((d) => d.secondSeriesYValue).reduce(max);
-            suggestedLineMaxY = roundUpToNiceNumber(maxLineY); // ✅ ใช้ฟังก์ชันนี้
-            suggestedLineInterval = (suggestedLineMaxY / 5).ceilToDouble(); // แบ่งเป็น 5 ช่วง
+            suggestedLineMaxY = roundUpToNiceNumber(maxLineY);
+            suggestedLineInterval = (suggestedLineMaxY / 5).ceilToDouble();
           }
 
           return SizedBox(
             width: widget.width,
             height: widget.height ?? 300,
             child: SfCartesianChart(
+              key: ValueKey('chart_${widget.selected}_${_chartData.length}_${_hasDataChanged}'),
               zoomPanBehavior: _zoomPan,
               legend: Legend(
                 isVisible: true,
                 position: LegendPosition.top,
                 alignment: ChartAlignment.center,
                 itemPadding: 10,
-                // overflowMode: LegendItemOverflowMode.scroll,
               ),
               tooltipBehavior: _tooltipBehavior,
               plotAreaBorderWidth: 0,
               primaryXAxis: CategoryAxis(
-                // เมื่อกรองดูเฉพาะปีเดียว หรือเหลือข้อมูลเพียงรายการเดียว ให้แสดงเต็มโดยไม่ซูม
-                initialZoomPosition: (widget.selected != null && widget.selected! > 0) || isSingleBar ? 0 : 0.8,
-                initialZoomFactor: (widget.selected != null && widget.selected! > 0) || isSingleBar ? 1 : 0.3,
+                // ใช้ initialZoomPosition และ initialZoomFactor ใน CategoryAxis แทน
+                initialZoomPosition: (dataLength > 1 && !isSingleYear) ? 0.7 : 0.0,
+                initialZoomFactor: (dataLength > 1 && !isSingleYear) ? 0.3 : 1.0,
                 majorGridLines: MajorGridLines(width: 0),
                 edgeLabelPlacement: EdgeLabelPlacement.shift,
-                // labelStyle: TextStyle(color: Colors.transparent,),
                 labelStyle: TextStyle(
                   color: Colors.black,
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
-                ), // ✅ ปรับให้แสดงปี
+                ),
               ),
               primaryYAxis: NumericAxis(
-                // initialZoomPosition: 0,
-                // initialZoomFactor: 0.3,
                 minimum: 0,
                 maximum: suggestedMaxY.toDouble(),
                 numberFormat: NumberFormat.decimalPattern(),
@@ -554,9 +544,8 @@ class _SyncfusionCombineChartsState extends State<SyncfusionCombineCharts> {
                 ColumnSeries<ChartSampleData, String>(
                   name: 'จำนวนผู้ป่วย',
                   dataSource: _chartData,
-                  spacing: isSingleBar ? 0 : (widget.selected! > 0 ? 0.5 : 0.3),
-                  // หากมีเพียงค่าปีเดียว ปรับความกว้างแท่งกราฟให้มองเห็นชัดเจน
-                  width: isSingleBar ? 0.8 : 0.6,
+                  spacing: (isSingleYear || dataLength == 1) ? 0.5 : 0.3,
+                  width: dataLength == 1 ? 0.2 : 0.8,
                   xValueMapper: (ChartSampleData data, _) => data.x,
                   yValueMapper: (ChartSampleData data, _) => data.y,
                   dataLabelSettings: DataLabelSettings(

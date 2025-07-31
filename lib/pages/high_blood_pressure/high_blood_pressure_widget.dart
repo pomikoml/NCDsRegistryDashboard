@@ -1899,7 +1899,7 @@ class _HighBloodPressureWidgetState extends State<HighBloodPressureWidget> with 
                                                     mainAxisSize: MainAxisSize.max,
                                                     children: [
                                                       Text(
-                                                        'ความดันโลหิตสูง',
+                                                        'โรคความดันโลหิตสูง',
                                                         style: FlutterFlowTheme.of(
                                                           context,
                                                         ).bodyMedium.override(
@@ -3132,7 +3132,7 @@ class _HighBloodPressureWidgetState extends State<HighBloodPressureWidget> with 
                                                                         ),
                                                                       ),
                                                                       Text(
-                                                                        'กราฟแสดงผู้ป่วยความดันโลหิตสูงทั้งหมด',
+                                                                        'กราฟแสดงผู้ป่วยโรคความดันโลหิตสูงทั้งหมด',
                                                                         style: FlutterFlowTheme.of(
                                                                           context,
                                                                         ).titleSmall.override(

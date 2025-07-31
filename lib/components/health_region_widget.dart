@@ -247,13 +247,13 @@ class _SampleTableWidgetState extends State<SampleTableWidget> {
     return Obx(() {
       final tableData = hc.getHealthRegionTableData();
       final headers = [
-        'เบาหวาน',
-        'ความดันโลหิตสูง',
-        'ไตวายเรื้อรัง',
+        'โรคเบาหวาน',
+        'โรคความดันโลหิตสูง',
+        'โรคไตวายเรื้อรัง',
         'โรคหัวใจ',
-        'หลอดเลือดสมอง',
-        'COPD',
-        'ไขมันในเลือดสูง',
+        'โรคหลอดเลือดสมอง',
+        'โรคถุงลมโป่งพอง',
+        'โรคไขมันในเลือดสูง',
         'โรคอ้วน',
         'บุหรี่ไฟฟ้า',
       ];
@@ -375,13 +375,13 @@ class _SampleTableWidgetState extends State<SampleTableWidget> {
                               child: Row(
                                 children: headers.map((key) {
                                   final mapKey = {
-                                    'เบาหวาน': 'diabetes',
-                                    'ความดันโลหิตสูง': 'hypertension',
-                                    'ไตวายเรื้อรัง': 'kidney',
+                                    'โรคเบาหวาน': 'diabetes',
+                                    'โรคความดันโลหิตสูง': 'hypertension',
+                                    'โรคไตวายเรื้อรัง': 'kidney',
                                     'โรคหัวใจ': 'heart',
-                                    'หลอดเลือดสมอง': 'stroke',
-                                    'COPD': 'copd',
-                                    'ไขมันในเลือดสูง': 'cholesterol',
+                                    'โรคหลอดเลือดสมอง': 'stroke',
+                                    'โรคถุงลมโป่งพอง': 'copd',
+                                    'โรคไขมันในเลือดสูง': 'cholesterol',
                                     'โรคอ้วน': 'obesity',
                                     'บุหรี่ไฟฟ้า': 'e_cigarette',
                                   }[key]!;
@@ -494,24 +494,24 @@ class _EnhancedDownloadButtonState extends State<EnhancedDownloadButton> with Si
         ? {
             'organization_code': 'รหัสหน่วยบริการ',
             'organization_name': 'ชื่อหน่วยบริการ',
-            'hypertension': 'ความดันโลหิตสูง',
-            'diabetes': 'เบาหวาน',
-            'kidney': 'ไตวายเรื้อรัง',
+            'hypertension': 'โรคความดันโลหิตสูง',
+            'diabetes': 'โรคเบาหวาน',
+            'kidney': 'โรคไตวายเรื้อรัง',
             'heart': 'โรคหัวใจ',
-            'stroke': 'หลอดเลือดสมอง',
-            'copd': 'COPD',
-            'cholesterol': 'ไขมันในเลือดสูง',
+            'stroke': 'โรคหลอดเลือดสมอง',
+            'copd': 'โรคุงลมโป่งพอง',
+            'cholesterol': 'โรคไขมันในเลือดสูง',
             'obesity': 'โรคอ้วน',
             'e_cigarette': 'บุหรี่ไฟฟ้า',
           }
         : {
-            'hypertension': 'ความดันโลหิตสูง',
-            'diabetes': 'เบาหวาน',
-            'kidney': 'ไตวายเรื้อรัง',
+            'hypertension': 'โรคความดันโลหิตสูง',
+            'diabetes': 'โรคเบาหวาน',
+            'kidney': 'โรคไตวายเรื้อรัง',
             'heart': 'โรคหัวใจ',
-            'stroke': 'หลอดเลือดสมอง',
-            'copd': 'COPD',
-            'cholesterol': 'ไขมันในเลือดสูง',
+            'stroke': 'โรคหลอดเลือดสมอง',
+            'copd': 'โรคุงลมโป่งพอง',
+            'cholesterol': 'โรคไขมันในเลือดสูง',
             'obesity': 'โรคอ้วน',
             'e_cigarette': 'บุหรี่ไฟฟ้า',
           };
@@ -756,13 +756,13 @@ class _XMLDownloadModalState extends State<XMLDownloadModal> with TickerProvider
       _fieldLabels = {
         'organization_code': 'รหัสหน่วยบริการ',
         'organization_name': 'ชื่อหน่วยบริการ',
-        'hypertension': 'ความดันโลหิตสูง',
-        'diabetes': 'เบาหวาน',
-        'kidney': 'ไตวายเรื้อรัง',
+        'hypertension': 'โรคความดันโลหิตสูง',
+        'diabetes': 'โรคเบาหวาน',
+        'kidney': 'โรคไตวายเรื้อรัง',
         'heart': 'โรคหัวใจ',
-        'stroke': 'หลอดเลือดสมอง',
-        'copd': 'COPD',
-        'cholesterol': 'ไขมันในเลือดสูง',
+        'stroke': 'โรคหลอดเลือดสมอง',
+        'copd': 'โรคถุงลมโป่งพอง',
+        'cholesterol': 'โรคไขมันในเลือดสูง',
         'obesity': 'โรคอ้วน',
         'e_cigarette': 'บุหรี่ไฟฟ้า',
       };
@@ -779,13 +779,13 @@ class _XMLDownloadModalState extends State<XMLDownloadModal> with TickerProvider
         'e_cigarette': true,
       };
       _fieldLabels = {
-        'hypertension': 'ความดันโลหิตสูง',
-        'diabetes': 'เบาหวาน',
-        'kidney': 'ไตวายเรื้อรัง',
+        'hypertension': 'โรคความดันโลหิตสูง',
+        'diabetes': 'โรคเบาหวาน',
+        'kidney': 'โรคไตวายเรื้อรัง',
         'heart': 'โรคหัวใจ',
-        'stroke': 'หลอดเลือดสมอง',
-        'copd': 'COPD',
-        'cholesterol': 'ไขมันในเลือดสูง',
+        'stroke': 'โรคหลอดเลือดสมอง',
+        'copd': 'โรคถุงลมโป่งพอง',
+        'cholesterol': 'โรคไขมันในเลือดสูง',
         'obesity': 'โรคอ้วน',
         'e_cigarette': 'บุหรี่ไฟฟ้า',
       };
@@ -2542,419 +2542,417 @@ class _HealthRegionWidgetState extends State<HealthRegionWidget> with TickerProv
                       // Detail view with pagination
                       return Flexible(
                         child: LayoutBuilder(builder: (context, bc) {
-                            return Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Breadcrumb and filters row
-                                Flexible(
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.max,
-                                    children: [
-                                      // Breadcrumb navigation
-                                      Flexible(
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            color: Color(0xCDFFFFFF),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                blurRadius: 24.0,
-                                                color: Color(0x1E666666),
-                                                offset: Offset(0.0, 2.0),
-                                              )
-                                            ],
-                                            borderRadius: BorderRadius.circular(100.0),
-                                            border: Border.all(
-                                              color: FlutterFlowTheme.of(context).secondaryBackground,
-                                            ),
-                                          ),
-                                          child: Padding(
-                                            padding: EdgeInsets.all(4.0),
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                FFButtonWidget(
-                                                  onPressed: () async {
-                                                    _model.isViewRegion = false;
-                                                    currentPage = 1;
-                                                    safeSetState(() {});
-                                                  },
-                                                  text: 'เขตสุขภาพทั้งหมด',
-                                                  icon: Icon(Icons.table_chart, size: 16.0),
-                                                  options: FFButtonOptions(
-                                                    height: 36.0,
-                                                    padding: EdgeInsets.all(8.0),
-                                                    iconPadding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                                                    iconColor: FlutterFlowTheme.of(context).primaryText,
-                                                    color: FlutterFlowTheme.of(context).primaryBackground,
-                                                    textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                          fontFamily: 'IBM Plex Sans Thai Looped',
-                                                          letterSpacing: 0.0,
-                                                        ),
-                                                    elevation: 0.0,
-                                                    borderRadius: BorderRadius.circular(24.0),
-                                                  ),
-                                                ),
-                                                Icon(
-                                                  Icons.keyboard_arrow_right_rounded,
-                                                  color: FlutterFlowTheme.of(context).primaryText,
-                                                  size: 24.0,
-                                                ),
-                                                Container(
-                                                  height: 36.0,
-                                                  decoration: BoxDecoration(
-                                                    color: FlutterFlowTheme.of(context).primary,
-                                                    borderRadius: BorderRadius.circular(100.0),
-                                                  ),
-                                                  child: Padding(
-                                                    padding: EdgeInsets.all(8.0),
-                                                    child: Row(
-                                                      mainAxisSize: MainAxisSize.min,
-                                                      children: [
-                                                        Icon(
-                                                          Icons.list_alt_rounded,
-                                                          color: FlutterFlowTheme.of(context).secondaryBackground,
-                                                          size: 20.0,
-                                                        ),
-                                                        SizedBox(width: 8.0),
-                                                        Text(
-                                                          'เขตสุขภาพที่ $selectedRegion',
-                                                          style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                fontFamily: 'IBM Plex Sans Thai Looped',
-                                                                color: FlutterFlowTheme.of(context).secondaryBackground,
-                                                                letterSpacing: 0.0,
-                                                                fontWeight: FontWeight.bold,
-                                                              ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
+                          return Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Breadcrumb and filters row
+                              Flexible(
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.max,
+                                  children: [
+                                    // Breadcrumb navigation
+                                    Flexible(
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: Color(0xCDFFFFFF),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              blurRadius: 24.0,
+                                              color: Color(0x1E666666),
+                                              offset: Offset(0.0, 2.0),
+                                            )
+                                          ],
+                                          borderRadius: BorderRadius.circular(100.0),
+                                          border: Border.all(
+                                            color: FlutterFlowTheme.of(context).secondaryBackground,
                                           ),
                                         ),
-                                      ),
-                                      SizedBox(width: 12.0),
-                                      // Filters section
-                                      Expanded(
-                                        flex: 3,
-                                        child: SingleChildScrollView(
-                                          scrollDirection: Axis.horizontal,
+                                        child: Padding(
+                                          padding: EdgeInsets.all(4.0),
                                           child: Row(
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
-                                              // Province filter
+                                              FFButtonWidget(
+                                                onPressed: () async {
+                                                  _model.isViewRegion = false;
+                                                  currentPage = 1;
+                                                  safeSetState(() {});
+                                                },
+                                                text: 'เขตสุขภาพทั้งหมด',
+                                                icon: Icon(Icons.table_chart, size: 16.0),
+                                                options: FFButtonOptions(
+                                                  height: 36.0,
+                                                  padding: EdgeInsets.all(8.0),
+                                                  iconPadding: EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
+                                                  iconColor: FlutterFlowTheme.of(context).primaryText,
+                                                  color: FlutterFlowTheme.of(context).primaryBackground,
+                                                  textStyle: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                        fontFamily: 'IBM Plex Sans Thai Looped',
+                                                        letterSpacing: 0.0,
+                                                      ),
+                                                  elevation: 0.0,
+                                                  borderRadius: BorderRadius.circular(24.0),
+                                                ),
+                                              ),
+                                              Icon(
+                                                Icons.keyboard_arrow_right_rounded,
+                                                color: FlutterFlowTheme.of(context).primaryText,
+                                                size: 24.0,
+                                              ),
                                               Container(
-                                                constraints: BoxConstraints(minWidth: 200.0),
+                                                height: 36.0,
                                                 decoration: BoxDecoration(
-                                                  color: Color(0xCDFFFFFF),
-                                                  borderRadius: BorderRadius.circular(16.0),
-                                                  border: Border.all(
-                                                    color: FlutterFlowTheme.of(context).secondaryBackground,
-                                                  ),
+                                                  color: FlutterFlowTheme.of(context).primary,
+                                                  borderRadius: BorderRadius.circular(100.0),
                                                 ),
                                                 child: Padding(
-                                                  padding: EdgeInsets.all(6.0),
+                                                  padding: EdgeInsets.all(8.0),
                                                   child: Row(
                                                     mainAxisSize: MainAxisSize.min,
                                                     children: [
-                                                      Row(
-                                                        mainAxisSize: MainAxisSize.min,
-                                                        children: [
-                                                          Container(
-                                                            width: 24.0,
-                                                            height: 24.0,
-                                                            decoration: BoxDecoration(
-                                                              color: Color(0xFF00855B),
-                                                              shape: BoxShape.circle,
-                                                            ),
-                                                            child: Icon(
-                                                              Icons.travel_explore_rounded,
-                                                              color: FlutterFlowTheme.of(context).secondaryBackground,
-                                                              size: 14.0,
-                                                            ),
-                                                          ),
-                                                          SizedBox(width: 8.0),
-                                                          Text(
-                                                            'เลือกจังหวัด',
-                                                            style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                  fontFamily: 'IBM Plex Sans Thai Looped',
-                                                                  color: FlutterFlowTheme.of(context).secondaryText,
-                                                                  letterSpacing: 0.0,
-                                                                ),
-                                                          ),
-                                                        ],
+                                                      Icon(
+                                                        Icons.list_alt_rounded,
+                                                        color: FlutterFlowTheme.of(context).secondaryBackground,
+                                                        size: 20.0,
                                                       ),
-                                                      SizedBox(width: 6.0),
-                                                      Container(
-                                                        decoration: BoxDecoration(
-                                                          color: FlutterFlowTheme.of(context).secondaryBackground,
-                                                          borderRadius: BorderRadius.circular(14.0),
-                                                          border: Border.all(
-                                                            color: FlutterFlowTheme.of(context).alternate,
-                                                          ),
-                                                        ),
-                                                        child: FlutterFlowDropDown<String>(
-                                                          controller: _model.dropDownValueController1 ??= FormFieldController<String>(
-                                                            _model.dropDownValue1 ??= 'ทั้งหมด',
-                                                          ),
-                                                          options: availableProvinces,
-                                                          onChanged: (val) async {
-                                                            setState(() {
-                                                              _model.dropDownValue1 = val;
-                                                              _model.dropDownValue2 = 'ทั้งหมด';
-                                                              _model.dropDownValueController2?.reset();
-                                                              currentPage = 1;
-                                                            });
-                            
-                                                            final provinceCode = provinceCodeToName.entries.firstWhere((e) => e.value == val, orElse: () => const MapEntry('', '')).key;
-                            
-                                                            if (provinceCode.isNotEmpty) {
-                                                              _ctrl.queryprovince = [
-                                                                provinceCode
-                                                              ];
-                                                            } else {
-                                                              _ctrl.queryprovince = [];
-                                                            }
-                            
-                                                            await _ctrl.fetchGroupByOrganizationAndCd(
-                                                              fiscalYear: widget.selectedFiscalYear ?? 0,
-                                                              regionid: selectedRegion,
-                                                              orgProvinceCode: _ctrl.queryprovince.isNotEmpty ? _ctrl.queryprovince[0] : null,
-                                                            );
-                            
-                                                            _updateDataAndFilters();
-                                                          },
-                                                          width: 300.0,
-                                                          height: 36.0,
-                                                          textStyle: FlutterFlowTheme.of(context).bodyLarge.override(
-                                                                fontFamily: 'IBM Plex Sans Thai Looped',
-                                                                letterSpacing: 0.0,
-                                                              ),
-                                                          hintText: 'ทั้งหมด',
-                                                          icon: Icon(
-                                                            Icons.arrow_drop_down_rounded,
-                                                            color: FlutterFlowTheme.of(context).primaryText,
-                                                            size: 24.0,
-                                                          ),
-                                                          elevation: 2.0,
-                                                          borderColor: Colors.transparent,
-                                                          borderWidth: 0.0,
-                                                          borderRadius: 6.0,
-                                                          margin: EdgeInsetsDirectional.fromSTEB(8.0, 0.0, 8.0, 0.0),
-                                                          hidesUnderline: true,
-                                                          isSearchable: true,
-                                                          isMultiSelect: false,
-                                                          dropdownHeight: 300,
-                                                          maxHeight: 300,
-                                                        ),
+                                                      SizedBox(width: 8.0),
+                                                      Text(
+                                                        'เขตสุขภาพที่ $selectedRegion',
+                                                        style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                              fontFamily: 'IBM Plex Sans Thai Looped',
+                                                              color: FlutterFlowTheme.of(context).secondaryBackground,
+                                                              letterSpacing: 0.0,
+                                                              fontWeight: FontWeight.bold,
+                                                            ),
                                                       ),
                                                     ],
                                                   ),
                                                 ),
-                                              ),
-                                              SizedBox(width: 8.0),
-                                              // Type filter
-                                              Container(
-                                                constraints: BoxConstraints(minWidth: 200.0),
-                                                decoration: BoxDecoration(
-                                                  color: Color(0xCDFFFFFF),
-                                                  borderRadius: BorderRadius.circular(16.0),
-                                                  border: Border.all(
-                                                    color: FlutterFlowTheme.of(context).secondaryBackground,
-                                                  ),
-                                                ),
-                                                child: Padding(
-                                                  padding: EdgeInsets.all(6.0),
-                                                  child: Row(
-                                                    mainAxisSize: MainAxisSize.min,
-                                                    children: [
-                                                      Row(
-                                                        mainAxisSize: MainAxisSize.min,
-                                                        children: [
-                                                          Container(
-                                                            width: 24.0,
-                                                            height: 24.0,
-                                                            decoration: BoxDecoration(
-                                                              color: Color(0xFFCF507C),
-                                                              shape: BoxShape.circle,
-                                                            ),
-                                                            child: Icon(
-                                                              Icons.medical_services,
-                                                              color: FlutterFlowTheme.of(context).secondaryBackground,
-                                                              size: 14.0,
-                                                            ),
-                                                          ),
-                                                          SizedBox(width: 8.0),
-                                                          Text(
-                                                            'ประเภท',
-                                                            style: FlutterFlowTheme.of(context).bodyMedium.override(
-                                                                  fontFamily: 'IBM Plex Sans Thai Looped',
-                                                                  color: FlutterFlowTheme.of(context).secondaryText,
-                                                                  letterSpacing: 0.0,
-                                                                ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      SizedBox(width: 6.0),
-                                                      Container(
-                                                        decoration: BoxDecoration(
-                                                          color: FlutterFlowTheme.of(context).secondaryBackground,
-                                                          borderRadius: BorderRadius.circular(14.0),
-                                                          border: Border.all(
-                                                            color: FlutterFlowTheme.of(context).alternate,
-                                                          ),
-                                                        ),
-                                                        child: FlutterFlowDropDown<String>(
-                                                          controller: _model.dropDownValueController2 ??= FormFieldController<String>(
-                                                            _model.dropDownValue2 ??= 'ทั้งหมด',
-                                                          ),
-                                                          options: availableHospitalTypes,
-                                                          onChanged: (val) async {
-                                                            setState(() {
-                                                              _model.dropDownValue2 = val;
-                                                              currentPage = 1;
-                                                            });
-                                                            _filterData();
-                                                          },
-                                                          width: 300.0,
-                                                          height: 36.0,
-                                                          textStyle: FlutterFlowTheme.of(context).bodyLarge.override(
-                                                                fontFamily: 'IBM Plex Sans Thai Looped',
-                                                                letterSpacing: 0.0,
-                                                              ),
-                                                          hintText: 'ทั้งหมด',
-                                                          icon: Icon(
-                                                            Icons.arrow_drop_down_rounded,
-                                                            color: FlutterFlowTheme.of(context).primaryText,
-                                                            size: 24.0,
-                                                          ),
-                                                          elevation: 2.0,
-                                                          borderColor: Colors.transparent,
-                                                          borderWidth: 0.0,
-                                                          borderRadius: 6.0,
-                                                          margin: EdgeInsetsDirectional.fromSTEB(8.0, 0.0, 8.0, 0.0),
-                                                          hidesUnderline: true,
-                                                          isSearchable: true,
-                                                          isMultiSelect: false,
-                                                          dropdownHeight: 300,
-                                                          maxHeight: 300,
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ),
-                                              SizedBox(width: 8.0),
-                                              // Download button
-                                              EnhancedDownloadButton(
-                                                data: filteredTableData.isNotEmpty ? filteredTableData : _ctrl.getOrganizationTableData(),
-                                                defaultFileName: 'health_region_${selectedRegion}_organizations',
-                                                dataType: 'organization', // ระบุว่าเป็นข้อมูลหน่วยบริการ
                                               ),
                                             ],
                                           ),
                                         ),
                                       ),
-                                    ],
-                                  ),
-                                ),
-                            
-                                SizedBox(height: 8.0),
-                            
-                                // Detail table with pagination
-                                Flexible(
-                                  flex: 1,
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Flexible(
-                                        child: Obx(() {
-                                          final dataToShow = filteredTableData.isNotEmpty ? filteredTableData : _ctrl.getOrganizationTableData();
-                                          final paginatedData = getPaginatedData(dataToShow);
-                            
-                                          return Row(
-                                            children: [
-                                              // Fixed left columns
-                                              IntrinsicWidth(
-                                                child: Column(
+                                    ),
+                                    SizedBox(width: 12.0),
+                                    // Filters section
+                                    Expanded(
+                                      flex: 3,
+                                      child: SingleChildScrollView(
+                                        scrollDirection: Axis.horizontal,
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            // Province filter
+                                            Container(
+                                              constraints: BoxConstraints(minWidth: 200.0),
+                                              decoration: BoxDecoration(
+                                                color: Color(0xCDFFFFFF),
+                                                borderRadius: BorderRadius.circular(16.0),
+                                                border: Border.all(
+                                                  color: FlutterFlowTheme.of(context).secondaryBackground,
+                                                ),
+                                              ),
+                                              child: Padding(
+                                                padding: EdgeInsets.all(6.0),
+                                                child: Row(
+                                                  mainAxisSize: MainAxisSize.min,
                                                   children: [
-                                                    // Header
-                                                    _buildFixedRow([
-                                                      'ลำดับ',
-                                                      'รหัส',
-                                                      'หน่วยบริการ'
-                                                    ], isHeader: true, background: const Color(0xFFEAF7FF)),
-                                                    // Data rows
-                                                    for (var i = 0; i < paginatedData.length; i++)
-                                                      _buildFixedRow([
-                                                        '${(currentPage - 1) * rowsPerPage + i + 1}',
-                                                        paginatedData[i]['organization_code'].toString(),
-                                                        paginatedData[i]['organization_name'].toString(),
-                                                      ], background: i.isEven ? FlutterFlowTheme.of(context).primaryBackground : FlutterFlowTheme.of(context).secondaryBackground),
+                                                    Row(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      children: [
+                                                        Container(
+                                                          width: 24.0,
+                                                          height: 24.0,
+                                                          decoration: BoxDecoration(
+                                                            color: Color(0xFF00855B),
+                                                            shape: BoxShape.circle,
+                                                          ),
+                                                          child: Icon(
+                                                            Icons.travel_explore_rounded,
+                                                            color: FlutterFlowTheme.of(context).secondaryBackground,
+                                                            size: 14.0,
+                                                          ),
+                                                        ),
+                                                        SizedBox(width: 8.0),
+                                                        Text(
+                                                          'เลือกจังหวัด',
+                                                          style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                fontFamily: 'IBM Plex Sans Thai Looped',
+                                                                color: FlutterFlowTheme.of(context).secondaryText,
+                                                                letterSpacing: 0.0,
+                                                              ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    SizedBox(width: 6.0),
+                                                    Container(
+                                                      decoration: BoxDecoration(
+                                                        color: FlutterFlowTheme.of(context).secondaryBackground,
+                                                        borderRadius: BorderRadius.circular(14.0),
+                                                        border: Border.all(
+                                                          color: FlutterFlowTheme.of(context).alternate,
+                                                        ),
+                                                      ),
+                                                      child: FlutterFlowDropDown<String>(
+                                                        controller: _model.dropDownValueController1 ??= FormFieldController<String>(
+                                                          _model.dropDownValue1 ??= 'ทั้งหมด',
+                                                        ),
+                                                        options: availableProvinces,
+                                                        onChanged: (val) async {
+                                                          setState(() {
+                                                            _model.dropDownValue1 = val;
+                                                            _model.dropDownValue2 = 'ทั้งหมด';
+                                                            _model.dropDownValueController2?.reset();
+                                                            currentPage = 1;
+                                                          });
+
+                                                          final provinceCode = provinceCodeToName.entries.firstWhere((e) => e.value == val, orElse: () => const MapEntry('', '')).key;
+
+                                                          if (provinceCode.isNotEmpty) {
+                                                            _ctrl.queryprovince = [
+                                                              provinceCode
+                                                            ];
+                                                          } else {
+                                                            _ctrl.queryprovince = [];
+                                                          }
+
+                                                          await _ctrl.fetchGroupByOrganizationAndCd(
+                                                            fiscalYear: widget.selectedFiscalYear ?? 0,
+                                                            regionid: selectedRegion,
+                                                            orgProvinceCode: _ctrl.queryprovince.isNotEmpty ? _ctrl.queryprovince[0] : null,
+                                                          );
+
+                                                          _updateDataAndFilters();
+                                                        },
+                                                        width: 300.0,
+                                                        height: 36.0,
+                                                        textStyle: FlutterFlowTheme.of(context).bodyLarge.override(
+                                                              fontFamily: 'IBM Plex Sans Thai Looped',
+                                                              letterSpacing: 0.0,
+                                                            ),
+                                                        hintText: 'ทั้งหมด',
+                                                        icon: Icon(
+                                                          Icons.arrow_drop_down_rounded,
+                                                          color: FlutterFlowTheme.of(context).primaryText,
+                                                          size: 24.0,
+                                                        ),
+                                                        elevation: 2.0,
+                                                        borderColor: Colors.transparent,
+                                                        borderWidth: 0.0,
+                                                        borderRadius: 6.0,
+                                                        margin: EdgeInsetsDirectional.fromSTEB(8.0, 0.0, 8.0, 0.0),
+                                                        hidesUnderline: true,
+                                                        isSearchable: true,
+                                                        isMultiSelect: false,
+                                                        dropdownHeight: 300,
+                                                        maxHeight: 300,
+                                                      ),
+                                                    ),
                                                   ],
                                                 ),
                                               ),
-                                              // Scrollable disease columns
-                                              Expanded(
-                                                child: SingleChildScrollView(
-                                                  scrollDirection: Axis.horizontal,
-                                                  child: IntrinsicWidth(
-                                                    child: Column(
+                                            ),
+                                            SizedBox(width: 8.0),
+                                            // Type filter
+                                            Container(
+                                              constraints: BoxConstraints(minWidth: 200.0),
+                                              decoration: BoxDecoration(
+                                                color: Color(0xCDFFFFFF),
+                                                borderRadius: BorderRadius.circular(16.0),
+                                                border: Border.all(
+                                                  color: FlutterFlowTheme.of(context).secondaryBackground,
+                                                ),
+                                              ),
+                                              child: Padding(
+                                                padding: EdgeInsets.all(6.0),
+                                                child: Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    Row(
+                                                      mainAxisSize: MainAxisSize.min,
                                                       children: [
-                                                        _buildScrollableRow([
-                                                          'จังหวัด',
-                                                          'ความดันโลหิตสูง',
-                                                          'เบาหวาน',
-                                                          'ไตวายเรื้อรัง',
-                                                          'โรคหัวใจ',
-                                                          'หลอดเลือดสมอง',
-                                                          'COPD',
-                                                          'ไขมันในเลือดสูง',
-                                                          'โรคอ้วน',
-                                                          'บุหรี่ไฟฟ้า',
-                                                          'วันที่ส่ง',
-                                                          'สถานะ',
-                                                        ], isHeader: true, background: const Color(0xFFEAF7FF)),
-                                                        for (int i = 0; i < paginatedData.length; i++)
-                                                          _buildScrollableRow(
-                                                            [
-                                                              paginatedData[i]['province_name'], //จังหวัด
-                                                              numberFormat.format(paginatedData[i]['hypertension'] ?? 0),
-                                                              numberFormat.format(paginatedData[i]['diabetes'] ?? 0),
-                                                              numberFormat.format(paginatedData[i]['kidney'] ?? 0),
-                                                              numberFormat.format(paginatedData[i]['heart'] ?? 0),
-                                                              numberFormat.format(paginatedData[i]['stroke'] ?? 0),
-                                                              numberFormat.format(paginatedData[i]['copd'] ?? 0),
-                                                              numberFormat.format(paginatedData[i]['cholesterol'] ?? 0),
-                                                              numberFormat.format(paginatedData[i]['obesity'] ?? 0),
-                                                              numberFormat.format(paginatedData[i]['e_cigarette'] ?? 0),
-                                                              formatThaiDate(paginatedData[i]['register_datetime']), // วันที่ส่ง
-                                                              paginatedData[i]['status'], // สถานะ
-                                                            ],
-                                                            background: i.isEven ? FlutterFlowTheme.of(context).primaryBackground : FlutterFlowTheme.of(context).secondaryBackground,
+                                                        Container(
+                                                          width: 24.0,
+                                                          height: 24.0,
+                                                          decoration: BoxDecoration(
+                                                            color: Color(0xFFCF507C),
+                                                            shape: BoxShape.circle,
                                                           ),
+                                                          child: Icon(
+                                                            Icons.medical_services,
+                                                            color: FlutterFlowTheme.of(context).secondaryBackground,
+                                                            size: 14.0,
+                                                          ),
+                                                        ),
+                                                        SizedBox(width: 8.0),
+                                                        Text(
+                                                          'ประเภท',
+                                                          style: FlutterFlowTheme.of(context).bodyMedium.override(
+                                                                fontFamily: 'IBM Plex Sans Thai Looped',
+                                                                color: FlutterFlowTheme.of(context).secondaryText,
+                                                                letterSpacing: 0.0,
+                                                              ),
+                                                        ),
                                                       ],
                                                     ),
+                                                    SizedBox(width: 6.0),
+                                                    Container(
+                                                      decoration: BoxDecoration(
+                                                        color: FlutterFlowTheme.of(context).secondaryBackground,
+                                                        borderRadius: BorderRadius.circular(14.0),
+                                                        border: Border.all(
+                                                          color: FlutterFlowTheme.of(context).alternate,
+                                                        ),
+                                                      ),
+                                                      child: FlutterFlowDropDown<String>(
+                                                        controller: _model.dropDownValueController2 ??= FormFieldController<String>(
+                                                          _model.dropDownValue2 ??= 'ทั้งหมด',
+                                                        ),
+                                                        options: availableHospitalTypes,
+                                                        onChanged: (val) async {
+                                                          setState(() {
+                                                            _model.dropDownValue2 = val;
+                                                            currentPage = 1;
+                                                          });
+                                                          _filterData();
+                                                        },
+                                                        width: 300.0,
+                                                        height: 36.0,
+                                                        textStyle: FlutterFlowTheme.of(context).bodyLarge.override(
+                                                              fontFamily: 'IBM Plex Sans Thai Looped',
+                                                              letterSpacing: 0.0,
+                                                            ),
+                                                        hintText: 'ทั้งหมด',
+                                                        icon: Icon(
+                                                          Icons.arrow_drop_down_rounded,
+                                                          color: FlutterFlowTheme.of(context).primaryText,
+                                                          size: 24.0,
+                                                        ),
+                                                        elevation: 2.0,
+                                                        borderColor: Colors.transparent,
+                                                        borderWidth: 0.0,
+                                                        borderRadius: 6.0,
+                                                        margin: EdgeInsetsDirectional.fromSTEB(8.0, 0.0, 8.0, 0.0),
+                                                        hidesUnderline: true,
+                                                        isSearchable: true,
+                                                        isMultiSelect: false,
+                                                        dropdownHeight: 300,
+                                                        maxHeight: 300,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                            SizedBox(width: 8.0),
+                                            // Download button
+                                            EnhancedDownloadButton(
+                                              data: filteredTableData.isNotEmpty ? filteredTableData : _ctrl.getOrganizationTableData(),
+                                              defaultFileName: 'health_region_${selectedRegion}_organizations',
+                                              dataType: 'organization', // ระบุว่าเป็นข้อมูลหน่วยบริการ
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              SizedBox(height: 8.0),
+
+                              // Detail table with pagination
+                              Flexible(
+                                flex: 1,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Flexible(
+                                      child: Obx(() {
+                                        final dataToShow = filteredTableData.isNotEmpty ? filteredTableData : _ctrl.getOrganizationTableData();
+                                        final paginatedData = getPaginatedData(dataToShow);
+
+                                        return Row(
+                                          children: [
+                                            // Fixed left columns
+                                            IntrinsicWidth(
+                                              child: Column(
+                                                children: [
+                                                  // Header
+                                                  _buildFixedRow([
+                                                    'ลำดับ',
+                                                    'รหัส',
+                                                    'หน่วยบริการ'
+                                                  ], isHeader: true, background: const Color(0xFFEAF7FF)),
+                                                  // Data rows
+                                                  for (var i = 0; i < paginatedData.length; i++)
+                                                    _buildFixedRow([
+                                                      '${(currentPage - 1) * rowsPerPage + i + 1}',
+                                                      paginatedData[i]['organization_code'].toString(),
+                                                      paginatedData[i]['organization_name'].toString(),
+                                                    ], background: i.isEven ? FlutterFlowTheme.of(context).primaryBackground : FlutterFlowTheme.of(context).secondaryBackground),
+                                                ],
+                                              ),
+                                            ),
+                                            // Scrollable disease columns
+                                            Expanded(
+                                              child: SingleChildScrollView(
+                                                scrollDirection: Axis.horizontal,
+                                                child: IntrinsicWidth(
+                                                  child: Column(
+                                                    children: [
+                                                      _buildScrollableRow([
+                                                        'จังหวัด',
+                                                        'โรคความดันโลหิตสูง',
+                                                        'โรคเบาหวาน',
+                                                        'โรคไตวายเรื้อรัง',
+                                                        'โรคหัวใจ',
+                                                        'โรคหลอดเลือดสมอง',
+                                                        'โรคถุงลมโป่งพอง',
+                                                        'โรคไขมันในเลือดสูง',
+                                                        'โรคอ้วน',
+                                                        'บุหรี่ไฟฟ้า',
+                                                        'วันที่ส่ง',
+                                                        'สถานะ',
+                                                      ], isHeader: true, background: const Color(0xFFEAF7FF)),
+                                                      for (int i = 0; i < paginatedData.length; i++)
+                                                        _buildScrollableRow(
+                                                          [
+                                                            paginatedData[i]['province_name'], //จังหวัด
+                                                            numberFormat.format(paginatedData[i]['hypertension'] ?? 0),
+                                                            numberFormat.format(paginatedData[i]['diabetes'] ?? 0),
+                                                            numberFormat.format(paginatedData[i]['kidney'] ?? 0),
+                                                            numberFormat.format(paginatedData[i]['heart'] ?? 0),
+                                                            numberFormat.format(paginatedData[i]['stroke'] ?? 0),
+                                                            numberFormat.format(paginatedData[i]['copd'] ?? 0),
+                                                            numberFormat.format(paginatedData[i]['cholesterol'] ?? 0),
+                                                            numberFormat.format(paginatedData[i]['obesity'] ?? 0),
+                                                            numberFormat.format(paginatedData[i]['e_cigarette'] ?? 0),
+                                                            formatThaiDate(paginatedData[i]['register_datetime']), // วันที่ส่ง
+                                                            paginatedData[i]['status'], // สถานะ
+                                                          ],
+                                                          background: i.isEven ? FlutterFlowTheme.of(context).primaryBackground : FlutterFlowTheme.of(context).secondaryBackground,
+                                                        ),
+                                                    ],
                                                   ),
                                                 ),
                                               ),
-                                            ],
-                                          );
-                                        }),
-                                      ),
-                                      // Pagination
-                                      buildOrganizationPagination(),
-                                    ],
-                                  ),
+                                            ),
+                                          ],
+                                        );
+                                      }),
+                                    ),
+                                    // Pagination
+                                    buildOrganizationPagination(),
+                                  ],
                                 ),
-                              ],
-                            );
-                          }
-                        ),
+                              ),
+                            ],
+                          );
+                        }),
                       );
-                   
                     }
                   },
                 ),

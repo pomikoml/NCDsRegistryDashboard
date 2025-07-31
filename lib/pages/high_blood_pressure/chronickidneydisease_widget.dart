@@ -1929,7 +1929,7 @@ class _ChronicKidneyDiseaseWidgetState extends State<ChronicKidneyDiseaseWidget>
                                                     mainAxisSize: MainAxisSize.max,
                                                     children: [
                                                       Text(
-                                                        'ไตวายเรื้อรัง',
+                                                        'โรคไตวายเรื้อรัง',
                                                         style: FlutterFlowTheme.of(
                                                           context,
                                                         ).bodyMedium.override(
@@ -3515,7 +3515,7 @@ class _ChronicKidneyDiseaseWidgetState extends State<ChronicKidneyDiseaseWidget>
                                                                         ),
                                                                       ),
                                                                       Text(
-                                                                        'กราฟแสดงผู้ป่วยไตวายเรื้อรังทั้งหมด',
+                                                                        'กราฟแสดงผู้ป่วยโรคไตวายเรื้อรังทั้งหมด',
                                                                         style: FlutterFlowTheme.of(
                                                                           context,
                                                                         ).titleSmall.override(

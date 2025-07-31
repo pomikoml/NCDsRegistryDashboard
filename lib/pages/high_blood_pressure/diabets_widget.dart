@@ -1893,7 +1893,7 @@ class _DiabetesWidgetState extends State<DiabetesWidget> with TickerProviderStat
                                                     mainAxisSize: MainAxisSize.max,
                                                     children: [
                                                       Text(
-                                                        'เบาหวาน',
+                                                        'โรคเบาหวาน',
                                                         style: FlutterFlowTheme.of(
                                                           context,
                                                         ).bodyMedium.override(
@@ -3126,7 +3126,7 @@ class _DiabetesWidgetState extends State<DiabetesWidget> with TickerProviderStat
                                                                         ),
                                                                       ),
                                                                       Text(
-                                                                        'กราฟแสดงผู้ป่วยเบาหวานทั้งหมด',
+                                                                        'กราฟแสดงผู้ป่วยโรคเบาหวานทั้งหมด',
                                                                         style: FlutterFlowTheme.of(
                                                                           context,
                                                                         ).titleSmall.override(

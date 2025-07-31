@@ -1891,7 +1891,7 @@ class _HyperlipidemiaWidgetState extends State<HyperlipidemiaWidget> with Ticker
                                                     mainAxisSize: MainAxisSize.max,
                                                     children: [
                                                       Text(
-                                                        'ไขมันในเลือดสูง',
+                                                        'โรคไขมันในเลือดสูง',
                                                         style: FlutterFlowTheme.of(
                                                           context,
                                                         ).bodyMedium.override(
@@ -3124,7 +3124,7 @@ class _HyperlipidemiaWidgetState extends State<HyperlipidemiaWidget> with Ticker
                                                                         ),
                                                                       ),
                                                                       Text(
-                                                                        'กราฟแสดงผู้ป่วยไขมันในเลือดสูงทั้งหมด',
+                                                                        'กราฟแสดงผู้ป่วยโรคไขมันในเลือดสูงทั้งหมด',
                                                                         style: FlutterFlowTheme.of(
                                                                           context,
                                                                         ).titleSmall.override(

@@ -1893,7 +1893,7 @@ class _COPDWidgetState extends State<COPDWidget> with TickerProviderStateMixin {
                                                     mainAxisSize: MainAxisSize.max,
                                                     children: [
                                                       Text(
-                                                        ' COPD ',
+                                                        ' โรคถุงลมโป่งพอง ',
                                                         style: FlutterFlowTheme.of(
                                                           context,
                                                         ).bodyMedium.override(
@@ -3126,7 +3126,7 @@ class _COPDWidgetState extends State<COPDWidget> with TickerProviderStateMixin {
                                                                         ),
                                                                       ),
                                                                       Text(
-                                                                        'กราฟแสดงผู้ป่วย COPD ทั้งหมด',
+                                                                        'กราฟแสดงผู้ป่วยโรคถุงลมโป่งพองทั้งหมด',
                                                                         style: FlutterFlowTheme.of(
                                                                           context,
                                                                         ).titleSmall.override(
